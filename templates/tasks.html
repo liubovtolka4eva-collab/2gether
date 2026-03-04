@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LoveSpace — Домашние дела</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Сердечки фон -->
+<div class="hearts-bg" id="heartsBg"></div>
+
+<!-- Навигация -->
+<nav class="navbar">
+  <div class="nav-logo">💕 LoveSpace</div>
+  <div class="nav-links">
+    <a href="/dashboard" class="nav-item">🏠 Главная</a>
+    <a href="/wallet" class="nav-item">💰 Кошелёк</a>
+    <a href="/schedule" class="nav-item">📅 График</a>
+    <a href="/tasks" class="nav-item active">🧹 Дела</a>
+    <a href="/mood" class="nav-item">🌸 Настроение</a>
+    <a href="/wishlist" class="nav-item">✨ Вишлист</a>
+    <a href="/photos" class="nav-item">📸 Фото</a>
+  </div>
+  <div class="nav-user">
+    <span id="navUsername">...</span>
+    <a href="/logout" class="btn-sm">Выйти</a>
+  </div>
+</nav>
+
+<main class="main-content">
+  <div class="page-title">🧹 Домашние дела & Игра баллов</div>
+
+  <!-- СЧЁТ НЕДЕЛИ + ДОБАВИТЬ -->
+  <div class="grid-2" style="margin-bottom: 24px;">
+
+    <!-- Счёт недели -->
+    <div class="card">
+      <div class="card-title">🏆 Счёт этой недели</div>
+      <div class="score-widget" id="scoreWidget">
+        <p style="color:var(--text-light); text-align:center; width:100%">Загрузка...</p>
+      </div>
+      <div id="weekWinner" style="text-align:center; margin-top:16px;"></div>
+
+      <!-- Призы -->
+      <div style="margin-top: 16px; background: var(--pink-light); border-radius: 12px; padding: 14px; border: 1.5px solid var(--pink-soft);">
+        <div style="font-weight:800; color:var(--pink-deep); margin-bottom:8px; font-size:14px;">🎁 Призы победителю недели</div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;" id="prizesList">
+          <span class="prize-tag">💆 Массаж</span>
+          <span class="prize-tag">🍕 Пицца</span>
+          <span class="prize-tag">🍰 Вкусняшка</span>
+          <span class="prize-tag">💫 Любое желание</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Добавить задание -->
+    <div class="card">
+      <div class="card-title">➕ Новое задание</div>
+      <div class="form-group">
+        <label>Название задания</label>
+        <input type="text" id="taskTitle" class="input-field" placeholder="Например: помыть полы...">
+      </div>
+      <div class="form-group">
+        <label>Баллы за выполнение ⭐</label>
+        <input type="number" id="taskPoints" class="input-field" value="10" min="1" max="100">
+        <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
+          <button class="pts-preset" onclick="setPoints(5)">5 ⭐</button>
+          <button class="pts-preset" onclick="setPoints(10)">10 ⭐</button>
+          <button class="pts-preset" onclick="setPoints(15)">15 ⭐</button>
+          <button class="pts-preset" onclick="setPoints(20)">20 ⭐</button>
+          <button class="pts-preset" onclick="setPoints(30)">30 ⭐</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Назначить партнёру</label>
+        <select id="taskAssign" class="input-field">
+          <option value="">Любому из нас</option>
+        </select>
+      </div>
+      <button class="btn-primary full-width" onclick="addTask()">Добавить задание 💕</button>
+    </div>
+  </div>
+
+  <!-- БЫСТРЫЕ ЗАДАНИЯ -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-title">⚡ Быстро добавить</div>
+    <div style="display:flex; flex-wrap:wrap; gap:8px;" id="quickBtns"></div>
+  </div>
+
+  <!-- СПИСОК ЗАДАНИЙ -->
+  <div class="card">
+    <div class="card-title">📋 Задания на эту неделю</div>
+
+    <!-- Фильтры -->
+    <div class="tabs" style="margin-bottom: 16px;">
+      <button class="tab-btn active" onclick="filterTasks('all', event)">Все <span id="cnt_all" class="cnt-badge"></span></button>
+      <button class="tab-btn" onclick="filterTasks('pending', event)">Ожидают <span id="cnt_pending" class="cnt-badge"></span></button>
+      <button class="tab-btn" onclick="filterTasks('done', event)">Выполнены ✅ <span id="cnt_done" class="cnt-badge"></span></button>
+    </div>
+
+    <div id="tasksList">
+      <p style="color:var(--text-light); text-align:center; padding:20px;">Загрузка...</p>
+    </div>
+  </div>
+
+  <!-- ИСТОРИЯ НЕДЕЛЬ -->
+  <div class="card" style="margin-top: 24px;">
+    <div class="card-title">📊 Статистика за неделю</div>
+    <div id="statsBlock">
+      <p style="color:var(--text-light); text-align:center;">Загрузка статистики...</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- TOAST контейнер -->
+<div id="toastContainer"></div>
+
+<style>
+/* Дополнительные стили для tasks.html */
+.pts-preset {
+  padding: 4px 12px;
+  background: var(--pink-light);
+  border: 1.5px solid var(--pink-soft);
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--pink-deep);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.pts-preset:hover {
+  background: var(--pink-soft);
+  border-color: var(--pink-main);
+}
+.prize-tag {
+  background: white;
+  border: 1.5px solid var(--pink-mid);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pink-deep);
+}
+.cnt-badge {
+  background: var(--pink-main);
+  color: white;
+  border-radius: 12px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 900;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+  background: var(--pink-light);
+  border: 1.5px solid var(--pink-soft);
+  transition: all 0.25s;
+  animation: slideIn 0.3s ease;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.task-item.done {
+  opacity: 0.65;
+  background: #e8f5e9;
+  border-color: #a5d6a7;
+}
+.task-item:hover { transform: translateX(4px); }
+.task-check {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 3px solid var(--pink-main);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.25s;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+.task-check:hover { background: var(--pink-soft); transform: scale(1.1); }
+.task-check.checked {
+  background: linear-gradient(135deg, var(--pink-main), var(--pink-deep));
+  border-color: var(--pink-deep);
+  color: white;
+}
+.task-title { font-weight: 700; font-size: 15px; color: var(--text); }
+.task-meta { font-size: 12px; color: var(--text-light); margin-top: 3px; }
+.task-points {
+  background: linear-gradient(135deg, var(--pink-main), var(--pink-deep));
+  color: white;
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.stat-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pink-main), var(--pink-deep));
+  color: white; font-weight: 900; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+</style>
+
+<script src="/static/js/main.js"></script>
+<script>
+// ─── ДАННЫЕ ───────────────────────────────────────────────────────────────────
+let allTasks = [];
+let members  = [];
+let currentFilter = 'all';
+
+const QUICK_TASKS = [
+  ['🧹 Пропылесосить', 15], ['🍽️ Помыть посуду', 10], ['🧺 Постирать бельё', 20],
+  ['🗑️ Вынести мусор',  5], ['🛒 Купить продукты', 25], ['🧽 Помыть полы', 20],
+  ['🌿 Полить цветы',   5], ['🚿 Почистить ванну', 25], ['🍳 Приготовить ужин', 30],
+  ['📦 Разобрать вещи', 15],['🪟 Помыть окна', 30],    ['🐾 Покормить питомца', 5],
+];
+
+// ─── ИНИЦИАЛИЗАЦИЯ ────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildQuickButtons();
+  loadData();
+  animateHearts();
+});
+
+function animateHearts() {
+  const bg = document.getElementById('heartsBg');
+  for (let i = 0; i < 18; i++) {
+    const h = document.createElement('div');
+    h.className = 'floating-heart';
+    h.innerText = ['💕','💗','💖','💝','🩷','🌸'][Math.floor(Math.random()*6)];
+    h.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;font-size:${Math.random()*22+10}px;animation-delay:${Math.random()*8}s;animation-duration:${Math.random()*6+8}s;opacity:${Math.random()*0.2+0.08}`;
+    bg.appendChild(h);
+  }
+}
+
+// ─── БЫСТРЫЕ КНОПКИ ──────────────────────────────────────────────────────────
+function buildQuickButtons() {
+  const container = document.getElementById('quickBtns');
+  container.innerHTML = QUICK_TASKS.map(([name, pts]) =>
+    `<button class="btn-secondary" style="font-size:13px; padding:7px 14px;"
+       onclick="quickAdd('${name.replace(/'/g,"\\'")}', ${pts})">
+       ${name} <span style="color:var(--pink-main); font-weight:900;">${pts}⭐</span>
+     </button>`
+  ).join('');
+}
+
+function setPoints(n) {
+  document.getElementById('taskPoints').value = n;
+  document.querySelectorAll('.pts-preset').forEach(b => {
+    b.style.background = b.textContent.trim().startsWith(n) ? 'var(--pink-soft)' : '';
+  });
+}
+
+// ─── ЗАГРУЗКА ДАННЫХ ─────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const [tasks, scores] = await Promise.all([
+      LOVESPACE.api('/api/tasks'),
+      LOVESPACE.api('/api/tasks/score'),
+    ]);
+    allTasks = tasks;
+    members  = scores;
+
+    fillAssignSelect(scores);
+    renderScoreWidget(scores);
+    renderTasks(currentFilter);
+    renderStats(scores, tasks);
+    updateCounts();
+  } catch (e) {
+    console.error('loadData error:', e);
+  }
+}
+
+// ─── ВЫПАДАЮЩИЙ СПИСОК ───────────────────────────────────────────────────────
+function fillAssignSelect(scores) {
+  const sel = document.getElementById('taskAssign');
+  sel.innerHTML = '<option value="">Любому из нас</option>';
+  scores.forEach(s => {
+    sel.innerHTML += `<option value="${s.user_id}">${s.name}</option>`;
+  });
+}
+
+// ─── ВИДЖЕТ СЧЁТА ────────────────────────────────────────────────────────────
+function renderScoreWidget(scores) {
+  const sw = document.getElementById('scoreWidget');
+  const ww = document.getElementById('weekWinner');
+
+  if (!scores.length) {
+    sw.innerHTML = '<p style="color:var(--text-light); text-align:center; width:100%">Нет данных — добавьте задания!</p>';
+    return;
+  }
+
+  if (scores.length === 1) {
+    sw.innerHTML = `
+      <div class="score-person" style="flex:none; min-width:160px;">
+        <div class="score-number">${scores[0].score}</div>
+        <div class="score-name">${scores[0].name}</div>
+      </div>`;
+    return;
+  }
+
+  const [a, b] = scores;
+  const winner = a.score > b.score ? a : (b.score > a.score ? b : null);
+
+  sw.innerHTML = `
+    <div class="score-person ${winner && winner.user_id === a.user_id ? 'winner' : ''}">
+      ${winner && winner.user_id === a.user_id ? '<div class="crown">👑</div>' : ''}
+      <div class="score-number">${a.score}</div>
+      <div class="score-name">${a.name}</div>
+    </div>
+    <div style="font-size:30px; align-self:center; color:var(--pink-main);">⭐</div>
+    <div class="score-person ${winner && winner.user_id === b.user_id ? 'winner' : ''}">
+      ${winner && winner.user_id === b.user_id ? '<div class="crown">👑</div>' : ''}
+      <div class="score-number">${b.score}</div>
+      <div class="score-name">${b.name}</div>
+    </div>`;
+
+  if (winner) {
+    const gifts = ['массаж 💆', 'пицца 🍕', 'вкусняшка 🍰', 'любое желание 💫'];
+    const gift  = gifts[Math.floor(Math.random() * gifts.length)];
+    ww.innerHTML = `
+      <div style="background:linear-gradient(135deg,#fff0f5,#ffe0ee);
+                  border:2px solid var(--pink-mid); border-radius:14px; padding:14px;">
+        <div style="font-size:24px;">🎁</div>
+        <div style="font-weight:800; color:var(--pink-deep); font-size:16px; margin-top:4px;">
+          ${winner.name} побеждает!
+        </div>
+        <div style="font-size:13px; color:var(--text-light); margin-top:4px;">
+          Приз от партнёра: <strong>${gift}</strong>
+        </div>
+      </div>`;
+  } else {
+    ww.innerHTML = `
+      <div style="color:var(--text-light); font-size:14px; font-weight:700;">
+        🤝 Ничья! Продолжайте стараться
+      </div>`;
+  }
+}
+
+// ─── СЧЁТЧИКИ ВКЛАДОК ────────────────────────────────────────────────────────
+function updateCounts() {
+  document.getElementById('cnt_all').textContent     = allTasks.length;
+  document.getElementById('cnt_pending').textContent = allTasks.filter(t => t.status === 'pending').length;
+  document.getElementById('cnt_done').textContent    = allTasks.filter(t => t.status === 'done').length;
+}
+
+// ─── СПИСОК ЗАДАНИЙ ──────────────────────────────────────────────────────────
+function renderTasks(filter) {
+  currentFilter = filter;
+  const list   = document.getElementById('tasksList');
+  const filtered = filter === 'all' ? allTasks
+    : allTasks.filter(t => t.status === filter);
+
+  if (!filtered.length) {
+    list.innerHTML = `
+      <div style="text-align:center; padding:40px; color:var(--text-light);">
+        <div style="font-size:48px; margin-bottom:12px;">
+          ${filter === 'done' ? '🎉' : '📝'}
+        </div>
+        <div style="font-weight:700;">
+          ${filter === 'done' ? 'Пока нет выполненных заданий' : 'Нет заданий — добавьте новое!'}
+        </div>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(t => `
+    <div class="task-item ${t.status === 'done' ? 'done' : ''}" id="task_${t.id}">
+      <div class="task-check ${t.status === 'done' ? 'checked' : ''}"
+           onclick="completeTask(${t.id}, this)"
+           title="${t.status === 'done' ? 'Выполнено' : 'Отметить выполненным'}">
+        ${t.status === 'done' ? '✓' : ''}
+      </div>
+      <div style="flex:1; min-width:0;">
+        <div class="task-title">${t.title}</div>
+        <div class="task-meta">
+          ${t.assigned_name && t.assigned_name !== '—' ? `👤 ${t.assigned_name} · ` : ''}
+          ${t.status === 'done'
+            ? `<span style="color:#2e7d32;">✅ Выполнил: <strong>${t.completed_name || '?'}</strong></span>`
+            : '<span style="color:var(--pink-main);">⏳ Ожидает выполнения</span>'}
+        </div>
+      </div>
+      <div class="task-points">+${t.points} ⭐</div>
+    </div>`).join('');
+}
+
+function filterTasks(filter, e) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  renderTasks(filter);
+}
+
+// ─── СТАТИСТИКА ──────────────────────────────────────────────────────────────
+function renderStats(scores, tasks) {
+  const div = document.getElementById('statsBlock');
+  const total    = tasks.length;
+  const done     = tasks.filter(t => t.status === 'done').length;
+  const pending  = total - done;
+  const totalPts = scores.reduce((s, m) => s + m.score, 0);
+
+  div.innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px;">
+      <div style="text-align:center; background:var(--pink-light); border-radius:14px; padding:16px; border:1.5px solid var(--pink-soft);">
+        <div style="font-size:28px; font-weight:900; color:var(--pink-deep);">${total}</div>
+        <div style="font-size:12px; color:var(--text-light); font-weight:700;">ВСЕГО ЗАДАЧ</div>
+      </div>
+      <div style="text-align:center; background:#e8f5e9; border-radius:14px; padding:16px; border:1.5px solid #a5d6a7;">
+        <div style="font-size:28px; font-weight:900; color:#2e7d32;">${done}</div>
+        <div style="font-size:12px; color:#4caf50; font-weight:700;">ВЫПОЛНЕНО</div>
+      </div>
+      <div style="text-align:center; background:#fff3e0; border-radius:14px; padding:16px; border:1.5px solid #ffcc80;">
+        <div style="font-size:28px; font-weight:900; color:#e65100;">${pending}</div>
+        <div style="font-size:12px; color:#ff9800; font-weight:700;">ОСТАЛОСЬ</div>
+      </div>
+    </div>
+
+    ${total > 0 ? `
+    <div class="stat-bar-wrap">
+      <div class="stat-bar-label">
+        <span>Прогресс недели</span>
+        <span>${Math.round(done/total*100)}%</span>
+      </div>
+      <div class="stat-bar">
+        <div class="stat-bar-fill" style="width:${Math.round(done/total*100)}%"></div>
+      </div>
+    </div>` : ''}
+
+    ${scores.length ? `
+    <div style="margin-top:16px;">
+      <div style="font-weight:800; color:var(--pink-deep); margin-bottom:10px; font-size:14px;">
+        🏅 Рейтинг участников
+      </div>
+      ${scores.map((s, i) => `
+        <div class="stat-row">
+          <div class="stat-avatar">${s.name[0].toUpperCase()}</div>
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:14px;">${i===0&&scores[0].score>=(scores[1]?.score||0)?'👑 ':''}${s.name}</div>
+            <div class="stat-bar" style="height:8px; margin-top:4px;">
+              <div class="stat-bar-fill" style="width:${totalPts>0?Math.round(s.score/totalPts*100):0}%"></div>
+            </div>
+          </div>
+          <div style="font-weight:900; color:var(--pink-deep); font-size:18px; min-width:60px; text-align:right;">
+            ${s.score} ⭐
+          </div>
+        </div>`).join('')}
+    </div>` : ''}`;
+}
+
+// ─── ДЕЙСТВИЯ ────────────────────────────────────────────────────────────────
+async function completeTask(id, el) {
+  if (el.classList.contains('checked')) return; // уже выполнено
+  el.style.opacity = '0.5';
+  await LOVESPACE.api('/api/tasks', 'POST', { action: 'complete', id });
+  LOVESPACE.toast('Отлично! Задание выполнено 🎉');
+  loadData();
+}
+
+async function addTask() {
+  const title = document.getElementById('taskTitle').value.trim();
+  const pts   = parseInt(document.getElementById('taskPoints').value) || 10;
+  const assign = document.getElementById('taskAssign').value || null;
+
+  if (!title) { LOVESPACE.toast('Введите название задания', 'error'); return; }
+  if (pts < 1 || pts > 100) { LOVESPACE.toast('Баллы: от 1 до 100', 'error'); return; }
+
+  await LOVESPACE.api('/api/tasks', 'POST', { title, points: pts, assigned_to: assign });
+  document.getElementById('taskTitle').value = '';
+  document.getElementById('taskPoints').value = 10;
+  LOVESPACE.toast(`«${title}» добавлено (+${pts}⭐) 💕`);
+  loadData();
+}
+
+async function quickAdd(title, points) {
+  await LOVESPACE.api('/api/tasks', 'POST', { title, points });
+  LOVESPACE.toast(`${title} добавлено! 💕`);
+  loadData();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LoveSpace — приложение для пар</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+</head>
+<body class="landing-body">
+  <div class="hearts-bg" id="heartsBg"></div>
+  <div class="landing-container">
+    <div class="landing-logo">💕</div>
+    <h1 class="landing-title">LoveSpace</h1>
+    <p class="landing-sub">Пространство для вашей любви 🌸</p>
+    <div class="landing-features">
+      <div class="feature-pill">💰 Общий кошелёк</div>
+      <div class="feature-pill">📅 График вместе</div>
+      <div class="feature-pill">🧹 Домашние дела</div>
+      <div class="feature-pill">🌈 Настроение</div>
+      <div class="feature-pill">✨ Вишлист</div>
+      <div class="feature-pill">📸 Наши фото</div>
+    </div>
+    <div class="landing-buttons">
+      <a href="/register" class="btn-primary">Начать вместе 💕</a>
+      <a href="/login" class="btn-secondary">Войти</a>
+    </div>
+  </div>
+  <script>
+    const bg = document.getElementById('heartsBg');
+    const emojis = ['💕','💗','💖','💝','🩷','❤️','💓','🌸','✨','🥰'];
+    for(let i=0;i<25;i++){
+      const h=document.createElement('div');
+      h.className='floating-heart';
+      h.innerText=emojis[Math.floor(Math.random()*emojis.length)];
+      h.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*120}%;font-size:${Math.random()*30+14}px;animation-delay:${Math.random()*10}s;animation-duration:${Math.random()*7+8}s;opacity:${Math.random()*0.3+0.12}`;
+      bg.appendChild(h);
+    }
+  </script>
+</body>
+</html>

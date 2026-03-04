@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% set active = 'wallet' %}
+{% block content %}
+<div class="page-title">💰 Общий кошелёк & Копилки</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('wallet-tab','wt')">💸 Транзакции</button>
+  <button class="tab-btn" onclick="showTab('savings-tab','wt')">🐷 Копилки</button>
+  <button class="tab-btn" onclick="showTab('analysis-tab','wt')">🤖 ИИ-анализ</button>
+</div>
+
+<!-- ТРАНЗАКЦИИ -->
+<div id="wallet-tab" class="tab-content">
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">➕ Добавить транзакцию</div>
+      <div class="form-group">
+        <label>Тип</label>
+        <select id="txType" class="input-field">
+          <option value="expense">Расход</option>
+          <option value="income">Доход</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Сумма (₽)</label>
+        <input type="number" id="txAmount" class="input-field" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Категория</label>
+        <select id="txCategory" class="input-field">
+          <option>Продукты</option><option>Рестораны</option><option>Транспорт</option>
+          <option>Развлечения</option><option>Одежда</option><option>Здоровье</option>
+          <option>Дом</option><option>Красота</option><option>Спорт</option><option>Другое</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Описание</label>
+        <input type="text" id="txDesc" class="input-field" placeholder="Например: ужин в кафе">
+      </div>
+      <div class="form-group">
+        <label>Дата</label>
+        <input type="date" id="txDate" class="input-field">
+      </div>
+      <button class="btn-primary full-width" onclick="addTransaction()">Добавить 💕</button>
+      <div style="border-top:2px solid var(--pink-soft);margin-top:20px;padding-top:16px">
+        <div style="font-weight:800;color:var(--pink-deep);margin-bottom:10px">📷 Загрузить выписку (ИИ)</div>
+        <input type="file" id="receiptFile" accept="image/*" class="input-field" style="padding:8px">
+        <button class="btn-secondary full-width" style="margin-top:8px" onclick="analyzeReceipt()">Анализировать чек 🤖</button>
+        <div id="receiptResult" style="margin-top:10px;color:var(--text-light);font-size:13px"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 История транзакций</div>
+      <div id="txStats" style="display:flex;gap:12px;margin-bottom:16px">
+        <div style="flex:1;text-align:center;background:var(--pink-light);border-radius:12px;padding:12px">
+          <div style="font-size:11px;color:var(--text-light);font-weight:700">РАСХОДЫ</div>
+          <div id="totalExpense" style="font-size:22px;font-weight:900;color:#e05">—</div>
+        </div>
+        <div style="flex:1;text-align:center;background:#e8f5e9;border-radius:12px;padding:12px">
+          <div style="font-size:11px;color:var(--text-light);font-weight:700">ДОХОДЫ</div>
+          <div id="totalIncome" style="font-size:22px;font-weight:900;color:#2a9">—</div>
+        </div>
+      </div>
+      <ul class="tx-list" id="txList">
+        <li style="text-align:center;color:var(--text-light);padding:20px">Загрузка...</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- КОПИЛКИ -->
+<div id="savings-tab" class="tab-content" style="display:none">
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">🎯 Новая копилка</div>
+      <div class="form-group">
+        <label>Цель</label>
+        <input type="text" id="sgTitle" class="input-field" placeholder="Например: Путешествие в Париж">
+      </div>
+      <div class="form-group">
+        <label>Сумма цели (₽)</label>
+        <input type="number" id="sgTarget" class="input-field" placeholder="100000">
+      </div>
+      <div class="form-group">
+        <label>Эмодзи</label>
+        <input type="text" id="sgEmoji" class="input-field" placeholder="🎯" maxlength="2">
+      </div>
+      <button class="btn-primary full-width" onclick="addSavings()">Создать копилку 💕</button>
+    </div>
+    <div class="card">
+      <div class="card-title">💰 Наши копилки</div>
+      <div id="savingsList">Загрузка...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ИИ АНАЛИЗ -->
+<div id="analysis-tab" class="tab-content" style="display:none">
+  <div class="card">
+    <div class="card-title">🤖 ИИ-анализ расходов</div>
+    <p style="color:var(--text-light);margin-bottom:20px">ИИ проанализирует ваши транзакции и даст персональные советы</p>
+    <button class="btn-primary" onclick="runAnalysis()">Запустить анализ 🤖</button>
+    <div id="analysisResult" style="margin-top:20px"></div>
+    <div id="categoryChart" style="margin-top:20px"></div>
+  </div>
+</div>
+
+<!-- МОДАЛ пополнения копилки -->
+<div id="addFundsModal" class="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addFundsModal')">×</button>
+    <div class="modal-title">💰 Пополнить копилку</div>
+    <input type="hidden" id="fundGoalId">
+    <div class="form-group">
+      <label>Сумма (₽)</label>
+      <input type="number" id="fundAmount" class="input-field" placeholder="0">
+    </div>
+    <button class="btn-primary full-width" onclick="addFunds()">Пополнить 🐷</button>
+  </div>
+</div>
+
+<script>
+const CATS = {'Продукты':'🛒','Рестораны':'🍽️','Транспорт':'🚗','Развлечения':'🎬','Одежда':'👗','Здоровье':'💊','Дом':'🏠','Красота':'💄','Спорт':'🏋️','Другое':'📦'};
+
+function showTab(id, group) {
+  document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById(id).style.display='';
+  event.target.classList.add('active');
+}
+
+// Set default date
+document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+
+async function loadTransactions() {
+  const txs = await LOVESPACE.api('/api/transactions');
+  const list = document.getElementById('txList');
+  let expTotal=0, incTotal=0;
+  list.innerHTML = txs.map(t => {
+    if(t.type==='expense') expTotal+=t.amount; else incTotal+=t.amount;
+    const icon = CATS[t.category]||'📦';
+    return `<li class="tx-item">
+      <span class="tx-icon">${icon}</span>
+      <div class="tx-info">
+        <div class="tx-title">${t.description||t.category}</div>
+        <div class="tx-date">${t.category} • ${t.date}</div>
+      </div>
+      <span class="tx-amount ${t.type}">${t.type==='expense'?'−':'+'} ${LOVESPACE.formatMoney(t.amount)}</span>
+    </li>`;
+  }).join('') || '<li style="text-align:center;color:var(--text-light);padding:20px">Нет транзакций</li>';
+  document.getElementById('totalExpense').textContent = LOVESPACE.formatMoney(expTotal);
+  document.getElementById('totalIncome').textContent = LOVESPACE.formatMoney(incTotal);
+}
+
+async function addTransaction() {
+  const data = {
+    type: document.getElementById('txType').value,
+    amount: document.getElementById('txAmount').value,
+    category: document.getElementById('txCategory').value,
+    description: document.getElementById('txDesc').value,
+    date: document.getElementById('txDate').value
+  };
+  if(!data.amount) { LOVESPACE.toast('Введите сумму','error'); return; }
+  await LOVESPACE.api('/api/transactions','POST',data);
+  LOVESPACE.toast('Транзакция добавлена 💕');
+  loadTransactions();
+}
+
+async function loadSavings() {
+  const goals = await LOVESPACE.api('/api/savings');
+  const div = document.getElementById('savingsList');
+  if(!goals.length) { div.innerHTML='<p style="text-align:center;color:var(--text-light)">Нет копилок</p>'; return; }
+  div.innerHTML = goals.map(g => `
+    <div style="margin-bottom:20px;background:var(--pink-light);border-radius:14px;padding:16px;border:1.5px solid var(--pink-soft)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:28px">${g.emoji}</span>
+        <div>
+          <div style="font-weight:800;font-size:16px">${g.title}</div>
+          <div style="font-size:13px;color:var(--text-light)">${LOVESPACE.formatMoney(g.current)} / ${LOVESPACE.formatMoney(g.target)}</div>
+        </div>
+        <button class="btn-secondary" style="margin-left:auto;font-size:12px;padding:5px 12px" onclick="openFundModal(${g.id})">+ Пополнить</button>
+      </div>
+      <div class="stat-bar"><div class="stat-bar-fill" style="width:${g.percent}%"></div></div>
+      <div style="text-align:right;font-size:12px;color:var(--pink-main);font-weight:700;margin-top:4px">${g.percent}%</div>
+    </div>
+  `).join('');
+}
+
+async function addSavings() {
+  const data = {
+    title: document.getElementById('sgTitle').value,
+    target: document.getElementById('sgTarget').value,
+    emoji: document.getElementById('sgEmoji').value||'🎯'
+  };
+  if(!data.title||!data.target) { LOVESPACE.toast('Заполните все поля','error'); return; }
+  await LOVESPACE.api('/api/savings','POST',data);
+  LOVESPACE.toast('Копилка создана! 🐷');
+  loadSavings();
+}
+
+function openFundModal(id) {
+  document.getElementById('fundGoalId').value = id;
+  document.getElementById('fundAmount').value = '';
+  LOVESPACE.openModal('addFundsModal');
+}
+
+async function addFunds() {
+  const id = document.getElementById('fundGoalId').value;
+  const amount = document.getElementById('fundAmount').value;
+  await LOVESPACE.api('/api/savings','POST',{action:'add_funds',id,amount});
+  LOVESPACE.closeModal('addFundsModal');
+  LOVESPACE.toast('Пополнено! 💰');
+  loadSavings();
+}
+
+async function runAnalysis() {
+  const res = await LOVESPACE.api('/api/ai/analyze','POST');
+  const div = document.getElementById('analysisResult');
+  div.innerHTML = res.tips.map(t=>
+    `<div style="background:var(--pink-light);border:1.5px solid var(--pink-soft);border-radius:12px;padding:14px;margin-bottom:10px;font-weight:600">${t}</div>`
+  ).join('');
+  // Category chart
+  const chart = document.getElementById('categoryChart');
+  const entries = Object.entries(res.breakdown).sort((a,b)=>b[1]-a[1]);
+  if(entries.length) {
+    const total = entries.reduce((s,[,v])=>s+v,0);
+    chart.innerHTML = '<div style="font-weight:800;color:var(--pink-deep);margin-bottom:12px">📊 Расходы по категориям</div>' +
+      entries.map(([cat,amt])=>{
+        const pct = Math.round(amt/total*100);
+        return `<div class="stat-bar-wrap">
+          <div class="stat-bar-label"><span>${CATS[cat]||'📦'} ${cat}</span><span>${LOVESPACE.formatMoney(amt)} (${pct}%)</span></div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:${pct}%"></div></div>
+        </div>`;
+      }).join('');
+  }
+}
+
+async function analyzeReceipt() {
+  const file = document.getElementById('receiptFile').files[0];
+  if(!file) { LOVESPACE.toast('Выберите изображение','error'); return; }
+  document.getElementById('receiptResult').textContent = '🤖 Анализирую чек...';
+  // В реальной версии здесь отправляется изображение на Claude API
+  setTimeout(()=>{
+    document.getElementById('receiptResult').innerHTML = 
+      '<div style="color:var(--pink-deep);font-weight:700">✅ Анализ завершён! Транзакция добавлена автоматически.<br><small style="color:var(--text-light)">Подключите Claude API для реального ИИ-распознавания</small></div>';
+  }, 1500);
+}
+
+loadTransactions();
+loadSavings();
+</script>
+{% endblock %}

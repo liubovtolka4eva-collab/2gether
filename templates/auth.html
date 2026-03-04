@@ -1,0 +1,31 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LoveSpace</title><link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+</head><body><div class="hearts-bg" id="hb"></div>
+<div class="auth-wrapper"><div class="auth-card">
+<div class="auth-logo">💕</div>
+<h2 class="auth-title">{% if mode=='register' %}Создать аккаунт{% else %}Добро пожаловать{% endif %}</h2>
+<div id="err" class="error-box" style="display:none"></div>
+{% if mode=='register' %}<div class="form-group"><label>Ваше имя</label><input type="text" id="dn" class="input-field" placeholder="Как тебя зовут?"></div>
+<div class="form-group"><label>Логин</label><input type="text" id="un" class="input-field" placeholder="username"></div>{% endif %}
+<div class="form-group"><label>Email</label><input type="email" id="em" class="input-field" placeholder="love@example.com"></div>
+<div class="form-group"><label>Пароль</label><input type="password" id="pw" class="input-field" placeholder="••••••••"></div>
+<button class="btn-primary full-width" onclick="go()">{% if mode=='register' %}Зарегистрироваться 💕{% else %}Войти 💗{% endif %}</button>
+<p class="auth-switch">{% if mode=='register' %}Есть аккаунт? <a href="/login">Войти</a>{% else %}Нет аккаунта? <a href="/register">Создать</a>{% endif %}</p>
+</div></div>
+<script>
+const mode='{{ mode }}';
+async function go(){
+  const b={email:document.getElementById('em').value,password:document.getElementById('pw').value};
+  if(mode==='register'){b.username=document.getElementById('un').value;b.display_name=document.getElementById('dn').value;}
+  const r=await fetch('/'+mode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+  const d=await r.json();
+  if(d.error){const e=document.getElementById('err');e.textContent=d.error;e.style.display='block';}
+  else window.location.href=d.redirect;
+}
+const bg=document.getElementById('hb');
+for(let i=0;i<15;i++){const h=document.createElement('div');h.className='floating-heart';
+h.innerText=['💕','💗','💖','🩷'][Math.floor(Math.random()*4)];
+h.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;font-size:${Math.random()*20+10}px;animation-delay:${Math.random()*8}s;animation-duration:${Math.random()*6+8}s;opacity:0.2`;
+bg.appendChild(h);}
+</script></body></html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💕 LoveSpace</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Сердечки на фоне -->
+  <div class="hearts-bg" id="heartsBg"></div>
+
+  <nav class="navbar">
+    <div class="nav-logo">💕 LoveSpace</div>
+    <div class="nav-links">
+      <a href="/dashboard" class="nav-item {% if active=='home' %}active{% endif %}">🏠 Главная</a>
+      <a href="/wallet" class="nav-item {% if active=='wallet' %}active{% endif %}">💰 Кошелёк</a>
+      <a href="/schedule" class="nav-item {% if active=='schedule' %}active{% endif %}">📅 График</a>
+      <a href="/tasks" class="nav-item {% if active=='tasks' %}active{% endif %}">🧹 Дела</a>
+      <a href="/mood" class="nav-item {% if active=='mood' %}active{% endif %}">🌸 Настроение</a>
+      <a href="/wishlist" class="nav-item {% if active=='wishlist' %}active{% endif %}">✨ Вишлист</a>
+      <a href="/photos" class="nav-item {% if active=='photos' %}active{% endif %}">📸 Фото</a>
+    </div>
+    <div class="nav-user">
+      <span>{{ current_user.display_name }}</span>
+      <a href="/logout" class="btn-sm">Выйти</a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="/static/js/main.js"></script>
+  <script>
+    // Анимация сердечек на фоне
+    const bg = document.getElementById('heartsBg');
+    for(let i=0;i<18;i++){
+      const h = document.createElement('div');
+      h.className='floating-heart';
+      h.innerText=['💕','💗','💖','💝','🩷','❤️','💓'][Math.floor(Math.random()*7)];
+      h.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;font-size:${Math.random()*24+12}px;animation-delay:${Math.random()*8}s;animation-duration:${Math.random()*6+8}s;opacity:${Math.random()*0.25+0.1}`;
+      bg.appendChild(h);
+    }
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

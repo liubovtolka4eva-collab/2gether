@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% set active = 'mood' %}
+{% block content %}
+<div class="page-title">🌸 Шкала настроения</div>
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">😊 Моё настроение сегодня</div>
+    <div class="mood-grid" id="moodGrid"></div>
+    <div class="form-group">
+      <label>Заметка (необязательно)</label>
+      <textarea id="moodNote" class="input-field" placeholder="Как прошёл день?"></textarea>
+    </div>
+    <button class="btn-primary full-width" onclick="saveMood()">Сохранить 💕</button>
+  </div>
+  <div class="card">
+    <div class="card-title">💑 Настроение партнёра</div>
+    <div id="partnerMoodToday" style="text-align:center;padding:20px;font-size:60px">...</div>
+    <div id="partnerMoodLabel" style="text-align:center;color:var(--text-light);font-weight:700">Загрузка...</div>
+  </div>
+</div>
+<div class="card" style="margin-top:20px">
+  <div class="card-title">📅 Календарь настроения</div>
+  <div class="tabs" style="margin-bottom:16px">
+    <button class="tab-btn active" onclick="switchCal('mine',event)">Моё</button>
+    <button class="tab-btn" onclick="switchCal('partner',event)">Партнёра</button>
+  </div>
+  <div class="mood-calendar" id="moodCalendar" style="grid-template-columns:repeat(7,1fr)">
+    <div style="text-align:center;font-weight:800;color:var(--pink-deep);font-size:12px">Пн</div>
+    <div style="text-align:center;font-weight:800;color:var(--pink-deep);font-size:12px">Вт</div>
+    <div style="text-align:center;font-weight:800;color:var(--pink-deep);font-size:12px">Ср</div>
+    <div style="text-align:center;font-weight:800;color:var(--pink-deep);font-size:12px">Чт</div>
+    <div style="text-align:center;font-weight:800;color:var(--pink-deep);font-size:12px">Пт</div>
+    <div style="text-align:center;font-weight:800;color:var(--pink-deep);font-size:12px">Сб</div>
+    <div style="text-align:center;font-weight:800;color:var(--pink-deep);font-size:12px">Вс</div>
+  </div>
+  <div id="calBody"></div>
+</div>
+<script>
+const MOODS = LOVESPACE.MOODS;
+let moodData = {mine:[], partner:[]};
+let selectedMood = null;
+let calView = 'mine';
+
+function buildMoodGrid() {
+  const grid = document.getElementById('moodGrid');
+  grid.innerHTML = Object.entries(MOODS).map(([key, m]) =>
+    `<div class="mood-btn" id="mb_${key}" onclick="selectMood('${key}')">
+      <span class="emoji">${m.emoji}</span>
+      <span>${m.label}</span>
+    </div>`
+  ).join('');
+}
+
+function selectMood(key) {
+  selectedMood = key;
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('mb_'+key).classList.add('selected');
+}
+
+async function saveMood() {
+  if(!selectedMood) { LOVESPACE.toast('Выберите настроение','error'); return; }
+  await LOVESPACE.api('/api/mood','POST',{mood:selectedMood,note:document.getElementById('moodNote').value});
+  LOVESPACE.toast('Настроение сохранено 💕');
+  loadMood();
+}
+
+async function loadMood() {
+  moodData = await LOVESPACE.api('/api/mood');
+  // Partner today
+  if(moodData.partner.length) {
+    const today = new Date().toISOString().split('T')[0];
+    const todayEntry = moodData.partner.find(e=>e.date===today);
+    if(todayEntry) {
+      const m = MOODS[todayEntry.mood]||{emoji:'💕',label:''};
+      document.getElementById('partnerMoodToday').textContent = m.emoji;
+      document.getElementById('partnerMoodLabel').textContent = m.label;
+    } else {
+      document.getElementById('partnerMoodToday').textContent = '🤷';
+      document.getElementById('partnerMoodLabel').textContent = 'Ещё не указано';
+    }
+  } else {
+    document.getElementById('partnerMoodToday').textContent = '💕';
+    document.getElementById('partnerMoodLabel').textContent = 'Нет партнёра';
+  }
+  renderCalendar();
+}
+
+function switchCal(view, e) {
+  calView = view;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const entries = calView==='mine' ? moodData.mine : moodData.partner;
+  const map = {};
+  entries.forEach(e=>map[e.date]=e.mood);
+  // Build last 28 days
+  const days = [];
+  for(let i=27;i>=0;i--) {
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = d.toISOString().split('T')[0];
+    days.push({key, day:d.getDate(), mood:map[key]||null});
+  }
+  const body = document.getElementById('calBody');
+  body.innerHTML = '<div class="mood-calendar">' + days.map(d=>{
+    const m = d.mood ? MOODS[d.mood]||{emoji:'❓'} : null;
+    return `<div class="mood-day">
+      <span class="day-emoji">${m?m.emoji:'○'}</span>
+      <span class="day-num">${d.day}</span>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+buildMoodGrid();
+loadMood();
+</script>
+{% endblock %}

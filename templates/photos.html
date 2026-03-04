@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% set active = 'photos' %}
+{% block content %}
+<div class="page-title">📸 Наши фото</div>
+<div class="grid-2" style="margin-bottom:24px">
+  <div class="card">
+    <div class="card-title">📤 Поделиться фото</div>
+    <div class="form-group">
+      <label>Выберите фото</label>
+      <input type="file" id="photoFile" accept="image/*" class="input-field" style="padding:8px" onchange="previewPhoto(event)">
+    </div>
+    <div id="photoPreview" style="margin-bottom:12px"></div>
+    <div class="form-group">
+      <label>Подпись</label>
+      <input type="text" id="photoCaption" class="input-field" placeholder="Наш лучший момент 💕">
+    </div>
+    <button class="btn-primary full-width" onclick="uploadPhoto()">Опубликовать 💕</button>
+  </div>
+  <div class="card" style="background:linear-gradient(135deg,#fff0f7,#ffe0ee);text-align:center">
+    <div class="card-title" style="justify-content:center">💑 Наш альбом</div>
+    <div id="photoCount" style="font-size:48px;font-weight:900;color:var(--pink-deep)">...</div>
+    <div style="color:var(--text-light);font-size:14px;margin-bottom:20px">воспоминаний вместе</div>
+    <div style="font-size:40px">📷 💕 🌸</div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">🖼️ Все фото</div>
+  <div class="photo-grid" id="photoGrid"><p style="color:var(--text-light)">Загрузка...</p></div>
+</div>
+<script>
+function previewPhoto(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    document.getElementById('photoPreview').innerHTML=
+      `<img src="${ev.target.result}" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px;border:2px solid var(--pink-soft)">`;
+  };
+  reader.readAsDataURL(file);
+}
+async function uploadPhoto(){
+  const file=document.getElementById('photoFile').files[0];
+  if(!file){LOVESPACE.toast('Выберите фото','error');return;}
+  const fd=new FormData();
+  fd.append('photo',file);
+  fd.append('caption',document.getElementById('photoCaption').value);
+  const res=await LOVESPACE.api('/api/photos','POST',fd);
+  if(res.success){
+    LOVESPACE.toast('Фото добавлено! 📸');
+    document.getElementById('photoCaption').value='';
+    document.getElementById('photoPreview').innerHTML='';
+    loadPhotos();
+  }
+}
+async function loadPhotos(){
+  const photos=await LOVESPACE.api('/api/photos');
+  document.getElementById('photoCount').textContent=photos.length;
+  const grid=document.getElementById('photoGrid');
+  if(!photos.length){
+    grid.innerHTML='<p style="color:var(--text-light);text-align:center;padding:40px;grid-column:1/-1">Нет фото — добавьте первое! 💕</p>';
+    return;
+  }
+  grid.innerHTML=photos.map(p=>`
+    <div class="photo-item">
+      <img src="/static/uploads/${p.filename}" alt="${p.caption||''}">
+      ${p.caption?`<div class="photo-caption">${p.caption}</div>`:''}
+      <div class="photo-meta">${p.author} • ${p.date}</div>
+    </div>`).join('');
+}
+loadPhotos();
+</script>
+{% endblock %}

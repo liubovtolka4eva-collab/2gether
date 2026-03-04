@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% set active = 'wishlist' %}
+{% block content %}
+<div class="page-title">✨ Вишлисты</div>
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchWish('mine',event)">💕 Мой вишлист</button>
+  <button class="tab-btn" onclick="switchWish('partner',event)">🎁 Вишлист партнёра</button>
+</div>
+<div id="addWishCard" class="card" style="margin-bottom:24px">
+  <div class="card-title">➕ Добавить желание</div>
+  <div class="grid-2">
+    <div>
+      <div class="form-group"><label>Название</label><input type="text" id="wTitle" class="input-field" placeholder="Что вы хотите?"></div>
+      <div class="form-group"><label>Описание</label><textarea id="wDesc" class="input-field" rows="2" placeholder="Подробнее..."></textarea></div>
+      <div class="form-group"><label>Ссылка</label><input type="url" id="wLink" class="input-field" placeholder="https://..."></div>
+    </div>
+    <div>
+      <div class="form-group"><label>Цена (₽)</label><input type="number" id="wPrice" class="input-field"></div>
+      <div class="form-group"><label>Приоритет</label>
+        <select id="wPriority" class="input-field">
+          <option value="1">⭐ Хотелось бы</option>
+          <option value="2">⭐⭐ Очень хочу</option>
+          <option value="3">⭐⭐⭐ Мечта!</option>
+        </select>
+      </div>
+      <div class="form-group"><label>URL картинки</label><input type="url" id="wImg" class="input-field" placeholder="https://...jpg"></div>
+    </div>
+  </div>
+  <button class="btn-primary" onclick="addWish()">Добавить в вишлист 💕</button>
+</div>
+<div class="wish-grid" id="wishGrid"><p style="color:var(--text-light)">Загрузка...</p></div>
+<script>
+let currentMode='mine';
+const partnerId='{{ partner_id }}';
+
+async function loadWishlist(mode){
+  const url=mode==='mine'?'/api/wishlist':(partnerId?`/api/wishlist?user_id=${partnerId}`:'/api/wishlist');
+  const items=await LOVESPACE.api(url);
+  const grid=document.getElementById('wishGrid');
+  if(!items.length){grid.innerHTML='<p style="color:var(--text-light);grid-column:1/-1;text-align:center;padding:40px">Список пустой ✨</p>';return;}
+  const stars=n=>'⭐'.repeat(n);
+  grid.innerHTML=items.map(w=>`
+    <div class="wish-card">
+      ${w.image_url?`<img src="${w.image_url}" class="wish-img" onerror="this.style.display='none'">`
+        :`<div class="wish-img-placeholder">✨</div>`}
+      <div class="wish-body">
+        <div class="wish-title">${w.title} ${w.is_fulfilled?'✅':''}</div>
+        <div class="priority-stars">${stars(w.priority)}</div>
+        ${w.description?`<div class="wish-desc">${w.description}</div>`:''}
+        ${w.price?`<span class="wish-price">${LOVESPACE.formatMoney(w.price)}</span>`:''}
+        ${w.link?`<div style="margin-top:6px"><a href="${w.link}" target="_blank" class="wish-link">🔗 Перейти к товару</a></div>`:''}
+        ${mode==='mine'?`<button class="btn-danger" style="margin-top:10px;width:100%;font-size:12px" onclick="deleteWish(${w.id})">🗑️ Удалить</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function switchWish(mode,e){
+  currentMode=mode;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  document.getElementById('addWishCard').style.display=mode==='mine'?'':'none';
+  loadWishlist(mode);
+}
+
+async function addWish(){
+  const data={title:document.getElementById('wTitle').value,description:document.getElementById('wDesc').value,
+    link:document.getElementById('wLink').value,price:document.getElementById('wPrice').value,
+    priority:document.getElementById('wPriority').value,image_url:document.getElementById('wImg').value};
+  if(!data.title){LOVESPACE.toast('Введите название','error');return;}
+  await LOVESPACE.api('/api/wishlist','POST',data);
+  LOVESPACE.toast('Добавлено в вишлист! ✨');
+  ['wTitle','wDesc','wLink','wPrice','wImg'].forEach(id=>document.getElementById(id).value='');
+  loadWishlist('mine');
+}
+
+async function deleteWish(id){
+  await LOVESPACE.api('/api/wishlist','DELETE',{id});
+  LOVESPACE.toast('Удалено'); loadWishlist('mine');
+}
+
+loadWishlist('mine');
+</script>
+{% endblock %}

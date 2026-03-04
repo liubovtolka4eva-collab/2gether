@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-header">
+  <h1>Привет, {{ user.display_name }} 💕</h1>
+  <p style="color:var(--text-light);font-size:16px;margin-top:6px">Добро пожаловать в ваше пространство любви</p>
+</div>
+
+{% if user.couple_id and partner %}
+<!-- ЕСТЬ ПАРА -->
+<div class="couple-card">
+  <div style="font-size:14px;color:var(--text-light);font-weight:700;margin-bottom:8px">ВЫ — ПАРА 💕</div>
+  <div class="couple-avatars">
+    <div class="avatar-circle">{{ user.display_name[0].upper() }}</div>
+    <div class="couple-heart">💕</div>
+    <div class="avatar-circle">{{ partner.display_name[0].upper() }}</div>
+  </div>
+  <div style="font-size:20px;font-weight:800;color:var(--pink-deep)">
+    {{ user.display_name }} & {{ partner.display_name }}
+  </div>
+  <div style="color:var(--text-light);margin-top:6px;font-size:14px">Вместе с {{ user.couple.created_at.strftime('%d.%m.%Y') }}</div>
+</div>
+
+<div class="grid-3">
+  <!-- Мини-виджет: настроение сегодня -->
+  <div class="card">
+    <div class="card-title">🌸 Настроение сегодня</div>
+    <div id="dashMood" style="text-align:center;font-size:40px">...</div>
+    <div style="text-align:center;margin-top:8px">
+      <a href="/mood" class="btn-secondary" style="font-size:13px;padding:6px 16px">Обновить</a>
+    </div>
+  </div>
+  <!-- Мини-виджет: баллы недели -->
+  <div class="card">
+    <div class="card-title">🏆 Баллы недели</div>
+    <div id="dashScores">...</div>
+    <div style="text-align:center;margin-top:8px">
+      <a href="/tasks" class="btn-secondary" style="font-size:13px;padding:6px 16px">К делам</a>
+    </div>
+  </div>
+  <!-- Мини-виджет: копилки -->
+  <div class="card">
+    <div class="card-title">💰 Копилки</div>
+    <div id="dashSavings">...</div>
+    <div style="text-align:center;margin-top:8px">
+      <a href="/wallet" class="btn-secondary" style="font-size:13px;padding:6px 16px">К кошельку</a>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<!-- НЕТ ПАРЫ -->
+<div class="couple-card">
+  <div class="invite-section">
+    <div style="font-size:40px;margin-bottom:12px">💌</div>
+    <h2 style="color:var(--pink-deep);font-size:22px;font-weight:800;margin-bottom:8px">Пригласите партнёра</h2>
+    <p style="color:var(--text-light);margin-bottom:20px">Поделитесь кодом или QR-кодом, чтобы связать аккаунты</p>
+    <button class="btn-primary" onclick="generateInvite()">Получить код приглашения 💕</button>
+    <div id="inviteResult" style="display:none;margin-top:24px">
+      <div class="invite-code-display" id="inviteCode"></div>
+      <p style="color:var(--text-light);font-size:13px;margin:8px 0">или отсканируйте QR:</p>
+      <img id="inviteQR" class="qr-img" style="width:180px;height:180px" src="">
+      <div style="margin-top:16px">
+        <input id="inviteLink" class="input-field" readonly style="text-align:center;font-size:13px">
+        <button class="btn-secondary" style="margin-top:8px" onclick="copyInvite()">📋 Скопировать ссылку</button>
+      </div>
+    </div>
+  </div>
+  <div style="border-top:2px solid var(--pink-soft);padding-top:20px;margin-top:20px">
+    <h3 style="color:var(--pink-deep);font-weight:800;margin-bottom:12px">Или введите код партнёра</h3>
+    <div style="display:flex;gap:10px;max-width:360px;margin:0 auto">
+      <input id="partnerCode" class="input-field" placeholder="Код (8 символов)">
+      <button class="btn-primary" onclick="joinByCode()" style="white-space:nowrap">Присоединиться</button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+async function generateInvite() {
+  const data = await LOVESPACE.api('/api/invite/generate', 'POST');
+  document.getElementById('inviteCode').textContent = data.code;
+  document.getElementById('inviteQR').src = 'data:image/png;base64,' + data.qr;
+  document.getElementById('inviteLink').value = data.url;
+  document.getElementById('inviteResult').style.display = 'block';
+}
+function copyInvite() {
+  navigator.clipboard.writeText(document.getElementById('inviteLink').value);
+  LOVESPACE.toast('Ссылка скопирована! 💕');
+}
+function joinByCode() {
+  const code = document.getElementById('partnerCode').value.trim();
+  if (code.length === 8) window.location.href = '/join/' + code;
+  else LOVESPACE.toast('Введите 8-символьный код', 'error');
+}
+
+// Загрузка данных виджетов
+(async () => {
+  {% if user.couple_id %}
+  // Настроение
+  try {
+    const mood = await LOVESPACE.api('/api/mood');
+    if (mood.mine && mood.mine[0]) {
+      const m = LOVESPACE.MOODS[mood.mine[0].mood] || {emoji:'❓'};
+      document.getElementById('dashMood').textContent = m.emoji;
+    } else {
+      document.getElementById('dashMood').innerHTML = '<span style="font-size:16px;color:var(--text-light)">Не указано</span>';
+    }
+  } catch(e) {}
+
+  // Баллы
+  try {
+    const scores = await LOVESPACE.api('/api/tasks/score');
+    const div = document.getElementById('dashScores');
+    div.innerHTML = scores.map(s =>
+      `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--pink-soft)">
+        <span style="font-weight:700">${s.name}</span>
+        <span style="font-weight:900;color:var(--pink-deep)">${s.score} ⭐</span>
+      </div>`
+    ).join('');
+  } catch(e) {}
+
+  // Копилки
+  try {
+    const savings = await LOVESPACE.api('/api/savings');
+    const div = document.getElementById('dashSavings');
+    if (!savings.length) { div.innerHTML = '<p style="color:var(--text-light);font-size:13px;text-align:center">Нет копилок</p>'; return; }
+    div.innerHTML = savings.slice(0,3).map(g =>
+      `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:4px">
+          <span>${g.emoji} ${g.title}</span><span>${g.percent}%</span>
+        </div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:${g.percent}%"></div></div>
+      </div>`
+    ).join('');
+  } catch(e) {}
+  {% endif %}
+})();
+</script>
+{% endblock %}
