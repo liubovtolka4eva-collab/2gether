@@ -15,7 +15,10 @@ import os, random, string, qrcode, io, base64
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'lovespace-secret-key-2024'
 import os
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///lovespace.db')
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///lovespace.db')
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
