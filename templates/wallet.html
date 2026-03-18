@@ -246,7 +246,9 @@ async function analyzeReceipt() {
   }, 1500);
 }
 
-loadTransactions();
-loadSavings();
+window.addEventListener('load', () => {
+  loadTransactions();
+  loadSavings();
+});
 </script>
 {% endblock %}

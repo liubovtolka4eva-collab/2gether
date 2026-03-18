@@ -66,6 +66,6 @@ async function loadPhotos(){
       <div class="photo-meta">${p.author} • ${p.date}</div>
     </div>`).join('');
 }
-loadPhotos();
+window.addEventListener('load', () => { loadPhotos(); });
 </script>
 {% endblock %}

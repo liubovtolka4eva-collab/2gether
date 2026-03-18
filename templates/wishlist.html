@@ -78,6 +78,6 @@ async function deleteWish(id){
   LOVESPACE.toast('Удалено'); loadWishlist('mine');
 }
 
-loadWishlist('mine');
+window.addEventListener('load', () => { loadWishlist('mine'); });
 </script>
 {% endblock %}

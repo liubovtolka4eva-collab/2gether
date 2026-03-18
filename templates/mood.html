@@ -114,6 +114,6 @@ function renderCalendar() {
 }
 
 buildMoodGrid();
-loadMood();
+window.addEventListener('load', () => { loadMood(); });
 </script>
 {% endblock %}
