@@ -567,4 +567,3 @@ def api_me():
         'username': current_user.username,
         'couple_id': current_user.couple_id,
     })
-```
