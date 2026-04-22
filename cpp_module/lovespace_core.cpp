@@ -1,6 +1,3 @@
-// LoveSpace C++ Core — lovespace_core.cpp
-// Сборка Linux:   g++ -O2 -std=c++14 -shared -fPIC -o lovespace_core.so lovespace_core.cpp
-// Сборка Windows: g++ -O2 -std=c++14 -shared -o lovespace_core.dll lovespace_core.cpp
 
 #include <cstring>
 #include <cstdlib>
