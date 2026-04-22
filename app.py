@@ -1,9 +1,4 @@
-"""
-💕 LoveSpace — ГЛАВНЫЙ ФАЙЛ СЕРВЕРА (ПОЛНАЯ ВЕРСИЯ)
-Запуск: python app.py
-Содержит ВСЕ маршруты: страницы + API
-"""
-
+```python
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -21,15 +16,13 @@ if database_url.startswith('postgres://'):
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 db = SQLAlchemy(app)
 with app.app_context():
     db.create_all()
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
-
-# ─── МОДЕЛИ БАЗЫ ДАННЫХ ────────────────────────────────────────────────────────
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -41,7 +34,6 @@ class User(db.Model):
     couple_id = db.Column(db.Integer, db.ForeignKey('couple.id'), nullable=True)
     invite_code = db.Column(db.String(10), unique=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    # Flask-Login
     is_active = db.Column(db.Boolean, default=True)
     is_authenticated_flag = db.Column(db.Boolean, default=True)
     is_anonymous_flag = db.Column(db.Boolean, default=False)
@@ -72,7 +64,7 @@ class CoupleInvite(db.Model):
     from_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     to_email = db.Column(db.String(120))
     code = db.Column(db.String(10), unique=True)
-    status = db.Column(db.String(20), default='pending')  # pending/accepted/rejected
+    status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
@@ -84,7 +76,7 @@ class Transaction(db.Model):
     category = db.Column(db.String(50))
     description = db.Column(db.String(255))
     date = db.Column(db.Date, default=date.today)
-    type = db.Column(db.String(10))  # income/expense
+    type = db.Column(db.String(10))
 
 
 class SavingsGoal(db.Model):
@@ -101,8 +93,8 @@ class Schedule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     title = db.Column(db.String(100))
-    day_of_week = db.Column(db.Integer)  # 0=Mon..6=Sun
-    start_time = db.Column(db.String(5))  # "HH:MM"
+    day_of_week = db.Column(db.Integer)
+    start_time = db.Column(db.String(5))
     end_time = db.Column(db.String(5))
     is_busy = db.Column(db.Boolean, default=True)
 
@@ -116,14 +108,14 @@ class HomeTask(db.Model):
     completed_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     completed_at = db.Column(db.DateTime, nullable=True)
     week_number = db.Column(db.Integer)
-    status = db.Column(db.String(20), default='pending')  # pending/done
+    status = db.Column(db.String(20), default='pending')
 
 
 class MoodEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     date = db.Column(db.Date, default=date.today)
-    mood = db.Column(db.String(20))  # happy/sad/angry/love/neutral/tired
+    mood = db.Column(db.String(20))
     note = db.Column(db.Text, nullable=True)
 
 
@@ -149,15 +141,12 @@ class Photo(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-# ─── LOGIN MANAGER ────────────────────────────────────────────────────────────
 with app.app_context():
     db.create_all()
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-
-# ─── МАРШРУТЫ AUTH ───────────────────────────────────────────────────────────
 
 @app.route('/')
 def index():
@@ -202,8 +191,6 @@ def logout():
     return redirect(url_for('index'))
 
 
-# ─── DASHBOARD ───────────────────────────────────────────────────────────────
-
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -216,15 +203,12 @@ def dashboard():
     return render_template('dashboard.html', user=current_user, partner=partner)
 
 
-# ─── COUPLE API ──────────────────────────────────────────────────────────────
-
 @app.route('/api/invite/generate', methods=['POST'])
 @login_required
 def generate_invite():
     if not current_user.invite_code:
         current_user.generate_invite_code()
         db.session.commit()
-    # Generate QR
     qr = qrcode.QRCode(version=1, box_size=10, border=4)
     invite_url = f"{request.host_url}join/{current_user.invite_code}"
     qr.add_data(invite_url)
@@ -247,7 +231,6 @@ def join_couple(code):
         return redirect(url_for('dashboard'))
     if current_user.couple_id:
         return redirect(url_for('dashboard'))
-    # Create couple
     couple = Couple(name=f"{inviter.display_name} & {current_user.display_name}")
     db.session.add(couple)
     db.session.flush()
@@ -257,8 +240,6 @@ def join_couple(code):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
-
-# ─── WALLET API ──────────────────────────────────────────────────────────────
 
 @app.route('/api/transactions', methods=['GET', 'POST'])
 @login_required
@@ -315,8 +296,6 @@ def savings():
     return jsonify({'success': True, 'id': goal.id})
 
 
-# ─── SCHEDULE API ────────────────────────────────────────────────────────────
-
 @app.route('/api/schedule', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def schedule():
@@ -360,7 +339,6 @@ def free_time():
         return jsonify([])
     my_busy = Schedule.query.filter_by(user_id=current_user.id).all()
     partner_busy = Schedule.query.filter_by(user_id=partner.id).all()
-    # Find overlapping free slots (simplified)
     days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
     free = []
     for day in range(7):
@@ -370,8 +348,6 @@ def free_time():
             free.append({'day': days[day], 'slots': ['10:00-22:00 — весь день свободен!']})
     return jsonify(free)
 
-
-# ─── HOME TASKS API ──────────────────────────────────────────────────────────
 
 @app.route('/api/tasks', methods=['GET', 'POST'])
 @login_required
@@ -423,14 +399,11 @@ def task_scores():
     return jsonify([{'user_id': u.id, 'name': u.display_name, 'score': scores.get(u.id, 0)} for u in users])
 
 
-# ─── MOOD API ────────────────────────────────────────────────────────────────
-
 @app.route('/api/mood', methods=['GET', 'POST'])
 @login_required
 def mood():
     if request.method == 'GET':
         entries = MoodEntry.query.filter_by(user_id=current_user.id).order_by(MoodEntry.date.desc()).limit(30).all()
-        # Also get partner mood if in couple
         partner_entries = []
         if current_user.couple_id:
             partner = User.query.filter(
@@ -455,8 +428,6 @@ def mood():
     db.session.commit()
     return jsonify({'success': True})
 
-
-# ─── WISHLIST API ────────────────────────────────────────────────────────────
 
 @app.route('/api/wishlist', methods=['GET', 'POST', 'DELETE'])
 @login_required
@@ -491,8 +462,6 @@ def wishlist():
     return jsonify({'success': True})
 
 
-# ─── PHOTOS API ──────────────────────────────────────────────────────────────
-
 @app.route('/api/photos', methods=['GET', 'POST'])
 @login_required
 def photos():
@@ -524,12 +493,9 @@ def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
-# ─── AI ANALYSIS (через Claude API) ─────────────────────────────────────────
-
 @app.route('/api/ai/analyze', methods=['POST'])
 @login_required
 def ai_analyze():
-    """Анализ расходов через ИИ"""
     if not current_user.couple_id:
         return jsonify({'error': 'Нет пары'}), 400
     txs = Transaction.query.filter_by(couple_id=current_user.couple_id).order_by(Transaction.date.desc()).limit(20).all()
@@ -537,7 +503,6 @@ def ai_analyze():
     for t in txs:
         if t.type == 'expense':
             summary[t.category] = summary.get(t.category, 0) + t.amount
-    # Simple rule-based analysis (можно заменить на Claude API)
     tips = []
     total = sum(summary.values())
     for cat, amt in sorted(summary.items(), key=lambda x: -x[1]):
@@ -551,18 +516,12 @@ def ai_analyze():
     return jsonify({'tips': tips, 'breakdown': summary})
 
 
-# ─── ИНИЦИАЛИЗАЦИЯ ───────────────────────────────────────────────────────────
-
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         print("✅ База данных создана")
     app.run(host='0.0.0.0', port=5000, debug=True)
 
-
-# ══════════════════════════════════════════════════════════════
-#  СТРАНИЦЫ — маршруты для всех вкладок (добавлено)
-# ══════════════════════════════════════════════════════════════
 
 @app.route('/wallet')
 @login_required
@@ -608,3 +567,4 @@ def api_me():
         'username': current_user.username,
         'couple_id': current_user.couple_id,
     })
+```
