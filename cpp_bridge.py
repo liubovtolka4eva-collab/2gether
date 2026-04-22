@@ -1,20 +1,7 @@
-"""
-LoveSpace — Python-мост к C++ модулю (ctypes)
-Файл: cpp_bridge.py
-
-Использование:
-    from cpp_bridge import find_free_time_cpp, calc_scores_cpp
-
-Сборка C++:
-    cd cpp_module
-    g++ -O2 -shared -fPIC -o lovespace_core.so lovespace_core.cpp
-"""
 
 import ctypes
 import os
 import sys
-
-# ─── ЗАГРУЗКА БИБЛИОТЕКИ ─────────────────────────────────────────────────────
 
 def _load_lib():
     base = os.path.dirname(__file__)
@@ -25,8 +12,6 @@ def _load_lib():
     return None
 
 _lib = _load_lib()
-
-# ─── СТРУКТУРЫ ───────────────────────────────────────────────────────────────
 
 class TimeSlotC(ctypes.Structure):
     _fields_ = [('day', ctypes.c_int),
@@ -42,13 +27,7 @@ class CategoryStatsC(ctypes.Structure):
                 ('amount', ctypes.c_double),
                 ('percent', ctypes.c_double)]
 
-# ─── PYTHON-ОБЁРТКИ ──────────────────────────────────────────────────────────
-
 def find_free_time_cpp(a_slots: list, b_slots: list) -> list:
-    """
-    a_slots, b_slots — списки dict: {day:int, start_min:int, end_min:int}
-    Возвращает список свободных слотов.
-    """
     if _lib is None:
         return _find_free_time_python(a_slots, b_slots)
 
@@ -73,11 +52,7 @@ def find_free_time_cpp(a_slots: list, b_slots: list) -> list:
     return [{'day': out[i].day, 'start_min': out[i].start_min, 'end_min': out[i].end_min}
             for i in range(count)]
 
-
 def calc_scores_cpp(task_users: list, task_pts: list) -> list:
-    """
-    Возвращает список {'user_id': int, 'points': int}
-    """
     if _lib is None or not task_users:
         return _calc_scores_python(task_users, task_pts)
 
@@ -90,9 +65,7 @@ def calc_scores_cpp(task_users: list, task_pts: list) -> list:
     count = _lib.calc_weekly_scores(u_arr, p_arr, n, out, 256)
     return [{'user_id': out[i].user_id, 'points': out[i].points} for i in range(count)]
 
-
 def distribute_tasks_cpp(points_list: list) -> list:
-    """Распределить задачи равномерно. Возвращает список (0 или 1) для каждой задачи."""
     if _lib is None:
         return [i % 2 for i in range(len(points_list))]
 
@@ -104,11 +77,7 @@ def distribute_tasks_cpp(points_list: list) -> list:
     _lib.distribute_tasks(p_arr, n, out)
     return list(out)
 
-
-# ─── PYTHON FALLBACK (если .so не скомпилирован) ─────────────────────────────
-
 def _find_free_time_python(a_slots, b_slots):
-    """Pure Python fallback."""
     DAYS = 7
     DAY_START, DAY_END = 8*60, 22*60
     result = []
@@ -136,6 +105,6 @@ def _calc_scores_python(users, pts):
         scores[u] = scores.get(u, 0) + p
     return [{'user_id': k, 'points': v} for k, v in scores.items()]
 
-
 def minutes_to_hhmm(m: int) -> str:
     return f"{m//60:02d}:{m%60:02d}"
+```
