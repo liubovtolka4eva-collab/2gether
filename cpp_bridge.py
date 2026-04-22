@@ -107,4 +107,3 @@ def _calc_scores_python(users, pts):
 
 def minutes_to_hhmm(m: int) -> str:
     return f"{m//60:02d}:{m%60:02d}"
-```
