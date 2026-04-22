@@ -66,7 +66,6 @@ async function saveMood() {
 
 async function loadMood() {
   moodData = await LOVESPACE.api('/api/mood');
-  // Partner today
   if(moodData.partner.length) {
     const today = new Date().toISOString().split('T')[0];
     const todayEntry = moodData.partner.find(e=>e.date===today);
@@ -96,7 +95,6 @@ function renderCalendar() {
   const entries = calView==='mine' ? moodData.mine : moodData.partner;
   const map = {};
   entries.forEach(e=>map[e.date]=e.mood);
-  // Build last 28 days
   const days = [];
   for(let i=27;i>=0;i--) {
     const d = new Date(); d.setDate(d.getDate()-i);
