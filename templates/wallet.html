@@ -9,7 +9,6 @@
   <button class="tab-btn" onclick="showTab('analysis-tab','wt')">🤖 ИИ-анализ</button>
 </div>
 
-<!-- ТРАНЗАКЦИИ -->
 <div id="wallet-tab" class="tab-content">
   <div class="grid-2">
     <div class="card">
@@ -68,7 +67,6 @@
   </div>
 </div>
 
-<!-- КОПИЛКИ -->
 <div id="savings-tab" class="tab-content" style="display:none">
   <div class="grid-2">
     <div class="card">
@@ -94,7 +92,6 @@
   </div>
 </div>
 
-<!-- ИИ АНАЛИЗ -->
 <div id="analysis-tab" class="tab-content" style="display:none">
   <div class="card">
     <div class="card-title">🤖 ИИ-анализ расходов</div>
@@ -105,7 +102,6 @@
   </div>
 </div>
 
-<!-- МОДАЛ пополнения копилки -->
 <div id="addFundsModal" class="modal-overlay">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('addFundsModal')">×</button>
@@ -129,7 +125,6 @@ function showTab(id, group) {
   event.target.classList.add('active');
 }
 
-// Set default date
 document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
 
 async function loadTransactions() {
