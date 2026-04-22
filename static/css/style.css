@@ -1,6 +1,3 @@
-/* в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
-   LoveSpace вЂ” Р“Р»Р°РІРЅС‹Рµ СЃС‚РёР»Рё (СЂРѕР·РѕРІР°СЏ С‚РµРјР°)
-   в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ */
 
 :root {
   --pink-light: #fff0f5;
@@ -27,7 +24,6 @@ body {
   overflow-x: hidden;
 }
 
-/* в”Ђв”Ђ HEARTS BACKGROUND в”Ђв”Ђ */
 .hearts-bg {
   position: fixed; inset: 0;
   pointer-events: none;
@@ -46,7 +42,6 @@ body {
   100% { transform: translateY(-110vh) rotate(10deg); opacity: 0; }
 }
 
-/* в”Ђв”Ђ NAVBAR в”Ђв”Ђ */
 .navbar {
   position: sticky; top: 0; z-index: 100;
   display: flex; align-items: center; gap: 8px;
@@ -97,7 +92,7 @@ body {
 }
 .btn-sm:hover { background: var(--pink-mid); }
 
-/* в”Ђв”Ђ MAIN CONTENT в”Ђв”Ђ */
+
 .main-content {
   position: relative; z-index: 1;
   max-width: 1100px;
@@ -105,7 +100,7 @@ body {
   padding: 32px 20px;
 }
 
-/* в”Ђв”Ђ CARDS в”Ђв”Ђ */
+
 .card {
   background: rgba(255,255,255,0.88);
   backdrop-filter: blur(12px);
@@ -123,7 +118,6 @@ body {
   display: flex; align-items: center; gap: 8px;
 }
 
-/* в”Ђв”Ђ BUTTONS в”Ђв”Ђ */
 .btn-primary {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   background: linear-gradient(135deg, var(--pink-main), var(--pink-deep));
@@ -158,7 +152,6 @@ body {
 }
 .full-width { width: 100%; }
 
-/* в”Ђв”Ђ FORMS в”Ђв”Ђ */
 .form-group { margin-bottom: 16px; }
 .form-group label {
   display: block; font-weight: 700;
@@ -181,7 +174,6 @@ body {
 select.input-field { cursor: pointer; }
 textarea.input-field { resize: vertical; min-height: 80px; }
 
-/* в”Ђв”Ђ GRID LAYOUTS в”Ђв”Ђ */
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
 @media(max-width:768px) {
@@ -189,7 +181,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
   .navbar { flex-wrap: wrap; }
 }
 
-/* в”Ђв”Ђ DASHBOARD в”Ђв”Ђ */
 .dashboard-header {
   text-align: center; margin-bottom: 32px;
 }
@@ -244,7 +235,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
   transition: width 0.8s ease;
 }
 
-/* в”Ђв”Ђ PROGRESS RING в”Ђв”Ђ */
 .progress-card { text-align: center; }
 .progress-ring-wrap { position: relative; display: inline-block; margin: 12px; }
 .progress-ring-text {
@@ -255,7 +245,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
 .progress-ring-text .pct { font-size: 22px; }
 .progress-ring-text .emoji { font-size: 20px; }
 
-/* в”Ђв”Ђ TRANSACTIONS в”Ђв”Ђ */
 .tx-list { list-style: none; }
 .tx-item {
   display: flex; align-items: center; gap: 12px;
@@ -275,7 +264,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
 .tx-amount.expense { color: #e05; }
 .tx-amount.income  { color: #2a9; }
 
-/* в”Ђв”Ђ SCHEDULE GRID в”Ђв”Ђ */
 .schedule-grid {
   display: grid;
   grid-template-columns: 60px repeat(7, 1fr);
@@ -297,7 +285,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
 .sg-cell.busy { background: linear-gradient(135deg, var(--pink-main), var(--pink-deep)); }
 .sg-cell.free-both { background: linear-gradient(135deg, #a8e6cf, #3cb371); }
 
-/* в”Ђв”Ђ TASKS в”Ђв”Ђ */
 .task-item {
   display: flex; align-items: center; gap: 12px;
   padding: 14px 16px;
@@ -326,7 +313,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
   padding: 3px 12px; font-size: 13px; font-weight: 800;
 }
 
-/* в”Ђв”Ђ MOOD в”Ђв”Ђ */
 .mood-grid {
   display: grid; grid-template-columns: repeat(5,1fr); gap: 10px;
   margin: 16px 0;
@@ -361,7 +347,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
 .mood-day .day-emoji { font-size: 20px; display: block; }
 .mood-day .day-num { color: var(--text-light); font-size: 10px; }
 
-/* в”Ђв”Ђ WISHLIST в”Ђв”Ђ */
 .wish-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 16px; }
 .wish-card {
   background: white;
@@ -395,7 +380,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
 .wish-link:hover { text-decoration: underline; }
 .priority-stars { color: var(--pink-main); }
 
-/* в”Ђв”Ђ PHOTOS в”Ђв”Ђ */
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
@@ -421,7 +405,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
 }
 .photo-meta { font-size: 11px; color: var(--pink-main); font-weight: 700; padding: 0 12px 8px; text-align: center; }
 
-/* в”Ђв”Ђ AUTH PAGE в”Ђв”Ђ */
 .auth-wrapper {
   min-height: 100vh;
   display: flex; align-items: center; justify-content: center;
@@ -446,7 +429,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
   color: #9b2c4e; font-weight: 600; margin-bottom: 16px;
 }
 
-/* в”Ђв”Ђ LANDING PAGE в”Ђв”Ђ */
 .landing-body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
 .landing-container {
   text-align: center; z-index: 1; position: relative;
@@ -471,7 +453,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
 }
 .landing-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
 
-/* в”Ђв”Ђ SCORE WIDGET в”Ђв”Ђ */
 .score-widget {
   display: flex; gap: 16px; justify-content: center;
 }
@@ -487,7 +468,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
 .score-name { font-weight: 700; color: var(--text-light); }
 .crown { font-size: 28px; }
 
-/* в”Ђв”Ђ FREE TIME в”Ђв”Ђ */
 .free-slot {
   background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
   border: 2px solid #81c784;
@@ -498,7 +478,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
   color: #2e7d32;
 }
 
-/* в”Ђв”Ђ TABS в”Ђв”Ђ */
 .tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
 .tab-btn {
   padding: 8px 18px;
@@ -515,7 +494,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
   color: white;
 }
 
-/* в”Ђв”Ђ PAGE TITLE в”Ђв”Ђ */
 .page-title {
   font-size: 28px; font-weight: 900;
   color: var(--pink-deep);
@@ -523,7 +501,6 @@ textarea.input-field { resize: vertical; min-height: 80px; }
   display: flex; align-items: center; gap: 10px;
 }
 
-/* в”Ђв”Ђ MODAL в”Ђв”Ђ */
 .modal-overlay {
   display: none; position: fixed; inset: 0; z-index: 1000;
   background: rgba(100,30,60,0.35); backdrop-filter: blur(4px);
