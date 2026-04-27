@@ -27,45 +27,81 @@
   <div class="card-title">🖼️ Все фото</div>
   <div class="photo-grid" id="photoGrid"><p style="color:var(--text-light)">Загрузка...</p></div>
 </div>
+ 
+<style>
+.photo-item { position: relative; }
+.photo-delete {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: rgba(0,0,0,0.55);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px; height: 30px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.photo-item:hover .photo-delete { opacity: 1; }
+</style>
+ 
 <script>
-function previewPhoto(e){
-  const file=e.target.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    document.getElementById('photoPreview').innerHTML=
+function previewPhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('photoPreview').innerHTML =
       `<img src="${ev.target.result}" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px;border:2px solid var(--pink-soft)">`;
   };
   reader.readAsDataURL(file);
 }
-async function uploadPhoto(){
-  const file=document.getElementById('photoFile').files[0];
-  if(!file){LOVESPACE.toast('Выберите фото','error');return;}
-  const fd=new FormData();
-  fd.append('photo',file);
-  fd.append('caption',document.getElementById('photoCaption').value);
-  const res=await LOVESPACE.api('/api/photos','POST',fd);
-  if(res.success){
-    LOVESPACE.toast('Фото добавлено! 📸');
-    document.getElementById('photoCaption').value='';
-    document.getElementById('photoPreview').innerHTML='';
+ 
+async function uploadPhoto() {
+  const file = document.getElementById('photoFile').files[0];
+  if (!file) { TOGETHER.toast('Выберите фото', 'error'); return; }
+  const fd = new FormData();
+  fd.append('photo', file);
+  fd.append('caption', document.getElementById('photoCaption').value);
+  const res = await TOGETHER.api('/api/photos', 'POST', fd);
+  if (res.success) {
+    TOGETHER.toast('Фото добавлено! 📸');
+    document.getElementById('photoCaption').value = '';
+    document.getElementById('photoPreview').innerHTML = '';
+    document.getElementById('photoFile').value = '';
     loadPhotos();
   }
 }
-async function loadPhotos(){
-  const photos=await LOVESPACE.api('/api/photos');
-  document.getElementById('photoCount').textContent=photos.length;
-  const grid=document.getElementById('photoGrid');
-  if(!photos.length){
-    grid.innerHTML='<p style="color:var(--text-light);text-align:center;padding:40px;grid-column:1/-1">Нет фото — добавьте первое! 💕</p>';
+ 
+async function deletePhoto(id) {
+  if (!confirm('Удалить это фото?')) return;
+  const res = await fetch(`/api/photos/${id}`, { method: 'DELETE' });
+  const data = await res.json();
+  if (data.success) {
+    TOGETHER.toast('Фото удалено');
+    loadPhotos();
+  }
+}
+ 
+async function loadPhotos() {
+  const photos = await TOGETHER.api('/api/photos');
+  document.getElementById('photoCount').textContent = photos.length;
+  const grid = document.getElementById('photoGrid');
+  if (!photos.length) {
+    grid.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:40px;grid-column:1/-1">Нет фото — добавьте первое! 💕</p>';
     return;
   }
-  grid.innerHTML=photos.map(p=>`
+  grid.innerHTML = photos.map(p => `
     <div class="photo-item">
-      <img src="/static/uploads/${p.filename}" alt="${p.caption||''}">
-      ${p.caption?`<div class="photo-caption">${p.caption}</div>`:''}
+      <img src="/static/uploads/${p.filename}" alt="${p.caption || ''}">
+      <button class="photo-delete" onclick="deletePhoto(${p.id})" title="Удалить">✕</button>
+      ${p.caption ? `<div class="photo-caption">${p.caption}</div>` : ''}
       <div class="photo-meta">${p.author} • ${p.date}</div>
     </div>`).join('');
 }
+ 
 window.addEventListener('load', () => { loadPhotos(); });
 </script>
 {% endblock %}
