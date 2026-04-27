@@ -52,7 +52,7 @@ body {
   box-shadow: 0 2px 16px rgba(196,86,110,0.08);
 }
 .nav-logo {
-  font-family: 'Pacifico', cursive;
+  font-family: 'Dancing Script', cursive;
   font-size: 22px;
   color: var(--pink-deep);
   white-space: nowrap;
@@ -436,7 +436,7 @@ textarea.input-field { resize: vertical; min-height: 80px; }
 }
 .landing-logo { font-size: 80px; margin-bottom: 8px; }
 .landing-title {
-  font-family: 'Pacifico', cursive;
+  font-family: 'Dancing Script', cursive;
   font-size: 56px;
   background: linear-gradient(135deg, var(--pink-deep), var(--pink-main));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
