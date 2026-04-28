@@ -57,7 +57,7 @@
 const DAYS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 
 async function loadSchedule() {
-  const slots = await LOVESPACE.api('/api/schedule');
+  const slots = await TOGETHER.api('/api/schedule');
   const div = document.getElementById('mySchedule');
   if(!slots.length) { div.innerHTML='<p style="color:var(--text-light);text-align:center">Нет записей</p>'; return; }
   const byDay = {};
@@ -83,19 +83,19 @@ async function addSchedule() {
     start: document.getElementById('schStart').value,
     end: document.getElementById('schEnd').value
   };
-  if(!data.title) { LOVESPACE.toast('Введите название','error'); return; }
-  await LOVESPACE.api('/api/schedule','POST',data);
-  LOVESPACE.toast('Добавлено! 💕');
+  if(!data.title) { TOGETHER.toast('Введите название','error'); return; }
+  await TOGETHER.api('/api/schedule','POST',data);
+  TOGETHER.toast('Добавлено! 💕');
   loadSchedule();
 }
 
 async function deleteSlot(id) {
-  await LOVESPACE.api('/api/schedule','DELETE',{id});
+  await TOGETHER.api('/api/schedule','DELETE',{id});
   loadSchedule();
 }
 
 async function findFreeTime() {
-  const free = await LOVESPACE.api('/api/schedule/free');
+  const free = await TOGETHER.api('/api/schedule/free');
   const div = document.getElementById('freeTimeResult');
   if(!free.length) {
     div.innerHTML='<p style="color:var(--text-light);text-align:center">Нет совпадений или нет партнёра</p>';

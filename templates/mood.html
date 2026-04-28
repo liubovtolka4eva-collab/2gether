@@ -36,7 +36,7 @@
   <div id="calBody"></div>
 </div>
 <script>
-const MOODS = LOVESPACE.MOODS;
+const MOODS = TOGETHER.MOODS;
 let moodData = {mine:[], partner:[]};
 let selectedMood = null;
 let calView = 'mine';
@@ -58,14 +58,14 @@ function selectMood(key) {
 }
 
 async function saveMood() {
-  if(!selectedMood) { LOVESPACE.toast('Выберите настроение','error'); return; }
-  await LOVESPACE.api('/api/mood','POST',{mood:selectedMood,note:document.getElementById('moodNote').value});
-  LOVESPACE.toast('Настроение сохранено 💕');
+  if(!selectedMood) { TOGETHER.toast('Выберите настроение','error'); return; }
+  await TOGETHER.api('/api/mood','POST',{mood:selectedMood,note:document.getElementById('moodNote').value});
+  TOGETHER.toast('Настроение сохранено 💕');
   loadMood();
 }
 
 async function loadMood() {
-  moodData = await LOVESPACE.api('/api/mood');
+  moodData = await TOGETHER.api('/api/mood');
   if(moodData.partner.length) {
     const today = new Date().toISOString().split('T')[0];
     const todayEntry = moodData.partner.find(e=>e.date===today);

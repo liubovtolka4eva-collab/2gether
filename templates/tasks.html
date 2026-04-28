@@ -260,8 +260,8 @@ function setPoints(n) {
 async function loadData() {
   try {
     const [tasks, scores] = await Promise.all([
-      LOVESPACE.api('/api/tasks'),
-      LOVESPACE.api('/api/tasks/score'),
+      TOGETHER.api('/api/tasks'),
+      TOGETHER.api('/api/tasks/score'),
     ]);
     allTasks = tasks;
     members  = scores;
@@ -449,8 +449,8 @@ function renderStats(scores, tasks) {
 async function completeTask(id, el) {
   if (el.classList.contains('checked')) return;
   el.style.opacity = '0.5';
-  await LOVESPACE.api('/api/tasks', 'POST', { action: 'complete', id });
-  LOVESPACE.toast('Отлично! Задание выполнено 🎉');
+  await TOGETHER.api('/api/tasks', 'POST', { action: 'complete', id });
+  TOGETHER.toast('Отлично! Задание выполнено 🎉');
   loadData();
 }
 
@@ -459,19 +459,19 @@ async function addTask() {
   const pts   = parseInt(document.getElementById('taskPoints').value) || 10;
   const assign = document.getElementById('taskAssign').value || null;
 
-  if (!title) { LOVESPACE.toast('Введите название задания', 'error'); return; }
-  if (pts < 1 || pts > 100) { LOVESPACE.toast('Баллы: от 1 до 100', 'error'); return; }
+  if (!title) { TOGETHER.toast('Введите название задания', 'error'); return; }
+  if (pts < 1 || pts > 100) { TOGETHER.toast('Баллы: от 1 до 100', 'error'); return; }
 
-  await LOVESPACE.api('/api/tasks', 'POST', { title, points: pts, assigned_to: assign });
+  await TOGETHER.api('/api/tasks', 'POST', { title, points: pts, assigned_to: assign });
   document.getElementById('taskTitle').value = '';
   document.getElementById('taskPoints').value = 10;
-  LOVESPACE.toast(`«${title}» добавлено (+${pts}⭐) 💕`);
+  TOGETHER.toast(`«${title}» добавлено (+${pts}⭐) 💕`);
   loadData();
 }
 
 async function quickAdd(title, points) {
-  await LOVESPACE.api('/api/tasks', 'POST', { title, points });
-  LOVESPACE.toast(`${title} добавлено! 💕`);
+  await TOGETHER.api('/api/tasks', 'POST', { title, points });
+  TOGETHER.toast(`${title} добавлено! 💕`);
   loadData();
 }
 </script>

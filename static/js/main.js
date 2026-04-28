@@ -30,4 +30,4 @@ const MOODS = {
   anxious:{emoji:'😟',label:'Тревога'},angry:{emoji:'😡',label:'Злость'},
   excited:{emoji:'🤩',label:'Восторг'},romantic:{emoji:'💕',label:'Романтика'},
 };
-window.LOVESPACE = {api,toast,openModal,closeModal,formatMoney,MOODS};
+window.TOGETHER = {api,toast,openModal,closeModal,formatMoney,MOODS};

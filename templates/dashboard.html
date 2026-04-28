@@ -77,7 +77,7 @@
 
 <script>
 async function generateInvite() {
-  const data = await LOVESPACE.api('/api/invite/generate', 'POST');
+  const data = await TOGETHER.api('/api/invite/generate', 'POST');
   document.getElementById('inviteCode').textContent = data.code;
   document.getElementById('inviteQR').src = 'data:image/png;base64,' + data.qr;
   document.getElementById('inviteLink').value = data.url;
@@ -85,21 +85,21 @@ async function generateInvite() {
 }
 function copyInvite() {
   navigator.clipboard.writeText(document.getElementById('inviteLink').value);
-  LOVESPACE.toast('Ссылка скопирована! 💕');
+  TOGETHER.toast('Ссылка скопирована! 💕');
 }
 function joinByCode() {
   const code = document.getElementById('partnerCode').value.trim();
   if (code.length === 8) window.location.href = '/join/' + code;
-  else LOVESPACE.toast('Введите 8-символьный код', 'error');
+  else TOGETHER.toast('Введите 8-символьный код', 'error');
 }
 
 (async () => {
   {% if user.couple_id %}
   // Настроение
   try {
-    const mood = await LOVESPACE.api('/api/mood');
+    const mood = await TOGETHER.api('/api/mood');
     if (mood.mine && mood.mine[0]) {
-      const m = LOVESPACE.MOODS[mood.mine[0].mood] || {emoji:'❓'};
+      const m = TOGETHER.MOODS[mood.mine[0].mood] || {emoji:'❓'};
       document.getElementById('dashMood').textContent = m.emoji;
     } else {
       document.getElementById('dashMood').innerHTML = '<span style="font-size:16px;color:var(--text-light)">Не указано</span>';
@@ -107,7 +107,7 @@ function joinByCode() {
   } catch(e) {}
 
   try {
-    const scores = await LOVESPACE.api('/api/tasks/score');
+    const scores = await TOGETHER.api('/api/tasks/score');
     const div = document.getElementById('dashScores');
     div.innerHTML = scores.map(s =>
       `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--pink-soft)">
@@ -118,7 +118,7 @@ function joinByCode() {
   } catch(e) {}
 
   try {
-    const savings = await LOVESPACE.api('/api/savings');
+    const savings = await TOGETHER.api('/api/savings');
     const div = document.getElementById('dashSavings');
     if (!savings.length) { div.innerHTML = '<p style="color:var(--text-light);font-size:13px;text-align:center">Нет копилок</p>'; return; }
     div.innerHTML = savings.slice(0,3).map(g =>
