@@ -1,4 +1,4 @@
-// LoveSpace — Main JS
+
 async function api(url, method, body) {
   method = method || 'GET';
   const opts = { method, headers: {} };

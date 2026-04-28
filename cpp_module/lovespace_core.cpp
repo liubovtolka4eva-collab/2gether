@@ -1,6 +1,3 @@
-// LoveSpace C++ Core — lovespace_core.cpp
-// Сборка Linux:   g++ -O2 -std=c++14 -shared -fPIC -o lovespace_core.so lovespace_core.cpp
-// Сборка Windows: g++ -O2 -std=c++14 -shared -o lovespace_core.dll lovespace_core.cpp
 
 #include <cstring>
 #include <cstdlib>
@@ -15,7 +12,6 @@ struct CategoryStats  { char name[64]; double amount, percent; };
 struct DistribResult  { int assign[512]; int score0, score1, diff; };
 #pragma pack(pop)
 
-// ── Слить пересекающиеся интервалы ──────────────────────────────────────────
 static void merge_intervals(int* s, int* e, int& n) {
     for (int i=0;i<n-1;i++) for (int j=i+1;j<n;j++) if(s[i]>s[j]){std::swap(s[i],s[j]);std::swap(e[i],e[j]);}
     int ms[128],me[128],mc=0;
@@ -28,7 +24,6 @@ static void merge_intervals(int* s, int* e, int& n) {
 
 extern "C" {
 
-// Найти совместное свободное время (08:00–22:00, блоки >= 60 мин)
 int find_free_time(
     const TimeSlot* a, int ac,
     const TimeSlot* b, int bc,
@@ -65,7 +60,7 @@ int calc_weekly_scores(const int* u,const int* p,int n,ScoreEntry* out,int mx){
     return r;
 }
 
-// Равномерное распределение задач (жадный)
+// Равномерное распределение задач
 int distribute_tasks(const int* pts,int n,DistribResult* res){
     if(n>512) n=512;
     int sc[2]={0,0};
@@ -91,7 +86,6 @@ int mood_streak(const char** dates, int n){
     return streak;
 }
 
-// Хэш инвайт-кода FNV-1a
 unsigned int hash_invite_code(const char* code){
     unsigned int h=2166136261u;
     while(*code){h^=(unsigned char)*code++;h*=16777619u;}

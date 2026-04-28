@@ -1,20 +1,19 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LoveSpace — Домашние дела</title>
+  <title>2gether — Домашние дела</title>
   <link rel="stylesheet" href="/static/css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- Сердечки фон -->
 <div class="hearts-bg" id="heartsBg"></div>
 
-<!-- Навигация -->
 <nav class="navbar">
-  <div class="nav-logo">💕 LoveSpace</div>
+  <div class="nav-logo">💕 2gether</div>
   <div class="nav-links">
     <a href="/dashboard" class="nav-item">🏠 Главная</a>
     <a href="/wallet" class="nav-item">💰 Кошелёк</a>
@@ -33,10 +32,8 @@
 <main class="main-content">
   <div class="page-title">🧹 Домашние дела & Игра баллов</div>
 
-  <!-- СЧЁТ НЕДЕЛИ + ДОБАВИТЬ -->
   <div class="grid-2" style="margin-bottom: 24px;">
 
-    <!-- Счёт недели -->
     <div class="card">
       <div class="card-title">🏆 Счёт этой недели</div>
       <div class="score-widget" id="scoreWidget">
@@ -44,7 +41,6 @@
       </div>
       <div id="weekWinner" style="text-align:center; margin-top:16px;"></div>
 
-      <!-- Призы -->
       <div style="margin-top: 16px; background: var(--pink-light); border-radius: 12px; padding: 14px; border: 1.5px solid var(--pink-soft);">
         <div style="font-weight:800; color:var(--pink-deep); margin-bottom:8px; font-size:14px;">🎁 Призы победителю недели</div>
         <div style="display:flex; flex-wrap:wrap; gap:6px;" id="prizesList">
@@ -56,7 +52,6 @@
       </div>
     </div>
 
-    <!-- Добавить задание -->
     <div class="card">
       <div class="card-title">➕ Новое задание</div>
       <div class="form-group">
@@ -84,17 +79,14 @@
     </div>
   </div>
 
-  <!-- БЫСТРЫЕ ЗАДАНИЯ -->
   <div class="card" style="margin-bottom: 24px;">
     <div class="card-title">⚡ Быстро добавить</div>
     <div style="display:flex; flex-wrap:wrap; gap:8px;" id="quickBtns"></div>
   </div>
 
-  <!-- СПИСОК ЗАДАНИЙ -->
   <div class="card">
     <div class="card-title">📋 Задания на эту неделю</div>
 
-    <!-- Фильтры -->
     <div class="tabs" style="margin-bottom: 16px;">
       <button class="tab-btn active" onclick="filterTasks('all', event)">Все <span id="cnt_all" class="cnt-badge"></span></button>
       <button class="tab-btn" onclick="filterTasks('pending', event)">Ожидают <span id="cnt_pending" class="cnt-badge"></span></button>
@@ -106,7 +98,6 @@
     </div>
   </div>
 
-  <!-- ИСТОРИЯ НЕДЕЛЬ -->
   <div class="card" style="margin-top: 24px;">
     <div class="card-title">📊 Статистика за неделю</div>
     <div id="statsBlock">
@@ -116,11 +107,9 @@
 
 </main>
 
-<!-- TOAST контейнер -->
 <div id="toastContainer"></div>
 
 <style>
-/* Дополнительные стили для tasks.html */
 .pts-preset {
   padding: 4px 12px;
   background: var(--pink-light);
@@ -223,7 +212,6 @@
 
 <script src="/static/js/main.js"></script>
 <script>
-// ─── ДАННЫЕ ───────────────────────────────────────────────────────────────────
 let allTasks = [];
 let members  = [];
 let currentFilter = 'all';
@@ -235,7 +223,6 @@ const QUICK_TASKS = [
   ['📦 Разобрать вещи', 15],['🪟 Помыть окна', 30],    ['🐾 Покормить питомца', 5],
 ];
 
-// ─── ИНИЦИАЛИЗАЦИЯ ────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   buildQuickButtons();
   loadData();
@@ -253,7 +240,6 @@ function animateHearts() {
   }
 }
 
-// ─── БЫСТРЫЕ КНОПКИ ──────────────────────────────────────────────────────────
 function buildQuickButtons() {
   const container = document.getElementById('quickBtns');
   container.innerHTML = QUICK_TASKS.map(([name, pts]) =>
@@ -271,7 +257,6 @@ function setPoints(n) {
   });
 }
 
-// ─── ЗАГРУЗКА ДАННЫХ ─────────────────────────────────────────────────────────
 async function loadData() {
   try {
     const [tasks, scores] = await Promise.all([
@@ -291,7 +276,6 @@ async function loadData() {
   }
 }
 
-// ─── ВЫПАДАЮЩИЙ СПИСОК ───────────────────────────────────────────────────────
 function fillAssignSelect(scores) {
   const sel = document.getElementById('taskAssign');
   sel.innerHTML = '<option value="">Любому из нас</option>';
@@ -300,7 +284,6 @@ function fillAssignSelect(scores) {
   });
 }
 
-// ─── ВИДЖЕТ СЧЁТА ────────────────────────────────────────────────────────────
 function renderScoreWidget(scores) {
   const sw = document.getElementById('scoreWidget');
   const ww = document.getElementById('weekWinner');
@@ -357,14 +340,12 @@ function renderScoreWidget(scores) {
   }
 }
 
-// ─── СЧЁТЧИКИ ВКЛАДОК ────────────────────────────────────────────────────────
 function updateCounts() {
   document.getElementById('cnt_all').textContent     = allTasks.length;
   document.getElementById('cnt_pending').textContent = allTasks.filter(t => t.status === 'pending').length;
   document.getElementById('cnt_done').textContent    = allTasks.filter(t => t.status === 'done').length;
 }
 
-// ─── СПИСОК ЗАДАНИЙ ──────────────────────────────────────────────────────────
 function renderTasks(filter) {
   currentFilter = filter;
   const list   = document.getElementById('tasksList');
@@ -410,7 +391,6 @@ function filterTasks(filter, e) {
   renderTasks(filter);
 }
 
-// ─── СТАТИСТИКА ──────────────────────────────────────────────────────────────
 function renderStats(scores, tasks) {
   const div = document.getElementById('statsBlock');
   const total    = tasks.length;
@@ -466,9 +446,8 @@ function renderStats(scores, tasks) {
     </div>` : ''}`;
 }
 
-// ─── ДЕЙСТВИЯ ────────────────────────────────────────────────────────────────
 async function completeTask(id, el) {
-  if (el.classList.contains('checked')) return; // уже выполнено
+  if (el.classList.contains('checked')) return;
   el.style.opacity = '0.5';
   await LOVESPACE.api('/api/tasks', 'POST', { action: 'complete', id });
   LOVESPACE.toast('Отлично! Задание выполнено 🎉');
@@ -498,3 +477,4 @@ async function quickAdd(title, points) {
 </script>
 </body>
 </html>
+

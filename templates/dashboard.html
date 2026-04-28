@@ -93,7 +93,6 @@ function joinByCode() {
   else LOVESPACE.toast('Введите 8-символьный код', 'error');
 }
 
-// Загрузка данных виджетов
 (async () => {
   {% if user.couple_id %}
   // Настроение
@@ -107,7 +106,6 @@ function joinByCode() {
     }
   } catch(e) {}
 
-  // Баллы
   try {
     const scores = await LOVESPACE.api('/api/tasks/score');
     const div = document.getElementById('dashScores');
@@ -119,7 +117,6 @@ function joinByCode() {
     ).join('');
   } catch(e) {}
 
-  // Копилки
   try {
     const savings = await LOVESPACE.api('/api/savings');
     const div = document.getElementById('dashSavings');
