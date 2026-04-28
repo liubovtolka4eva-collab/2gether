@@ -49,7 +49,11 @@ async function loadWishlist(mode){
         ${w.description?`<div class="wish-desc">${w.description}</div>`:''}
         ${w.price?`<span class="wish-price">${LOVESPACE.formatMoney(w.price)}</span>`:''}
         ${w.link?`<div style="margin-top:6px"><a href="${w.link}" target="_blank" class="wish-link">🔗 Перейти к товару</a></div>`:''}
-        ${mode==='mine'?`<button class="btn-danger" style="margin-top:10px;width:100%;font-size:12px" onclick="deleteWish(${w.id})">🗑️ Удалить</button>`:''}
+        ${mode==='mine'?`
+  <div style="display:flex;gap:8px;margin-top:10px;">
+    ${!w.is_fulfilled?`<button class="btn-primary" style="flex:1;font-size:12px" onclick="fulfillWish(${w.id})">✅ Выполнено</button>`:'<div style="color:green;font-weight:700;text-align:center;flex:1">✅ Выполнено!</div>'}
+    <button class="btn-danger" style="flex:1;font-size:12px" onclick="deleteWish(${w.id})">🗑️ Удалить</button>
+  </div>`:''}
       </div>
     </div>`).join('');
 }
@@ -77,7 +81,11 @@ async function deleteWish(id){
   await LOVESPACE.api('/api/wishlist','DELETE',{id});
   LOVESPACE.toast('Удалено'); loadWishlist('mine');
 }
-
+async function fulfillWish(id){
+  await LOVESPACE.api('/api/wishlist','PATCH',{id});
+  LOVESPACE.toast('Желание исполнено! 🎉');
+  loadWishlist('mine');
+}
 window.addEventListener('load', () => { loadWishlist('mine'); });
 </script>
 {% endblock %}

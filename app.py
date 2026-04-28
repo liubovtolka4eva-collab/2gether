@@ -1,8 +1,4 @@
-"""
-💕 LoveSpace — ГЛАВНЫЙ ФАЙЛ СЕРВЕРА (ПОЛНАЯ ВЕРСИЯ)
-Запуск: python app.py
-Содержит ВСЕ маршруты: страницы + API
-"""
+
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
@@ -451,7 +447,7 @@ def mood():
 
 # ─── WISHLIST API ────────────────────────────────────────────────────────────
 
-@app.route('/api/wishlist', methods=['GET', 'POST', 'DELETE'])
+@app.route('/api/wishlist', methods=['GET', 'POST', 'DELETE', 'PATCH'])
 @login_required
 def wishlist():
     if request.method == 'GET':
@@ -467,6 +463,13 @@ def wishlist():
         item = WishlistItem.query.get(iid)
         if item and item.user_id == current_user.id:
             db.session.delete(item)
+            db.session.commit()
+        return jsonify({'success': True})
+    if request.method == 'PATCH':
+        iid = request.get_json().get('id')
+        item = WishlistItem.query.get(iid)
+        if item and item.user_id == current_user.id:
+            item.is_fulfilled = True
             db.session.commit()
         return jsonify({'success': True})
     data = request.get_json()
