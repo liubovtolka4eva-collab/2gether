@@ -110,7 +110,9 @@ function renderCalendar() {
   }).join('') + '</div>';
 }
 
-buildMoodGrid();
-window.addEventListener('load', () => { loadMood(); });
+window.addEventListener('load', () => { 
+  buildMoodGrid();
+  loadMood(); 
+});
 </script>
 {% endblock %}
