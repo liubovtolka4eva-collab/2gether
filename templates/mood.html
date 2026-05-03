@@ -36,14 +36,13 @@
   <div id="calBody"></div>
 </div>
 <script>
-const MOODS = TOGETHER.MOODS;
 let moodData = {mine:[], partner:[]};
 let selectedMood = null;
 let calView = 'mine';
 
 function buildMoodGrid() {
   const grid = document.getElementById('moodGrid');
-  grid.innerHTML = Object.entries(MOODS).map(([key, m]) =>
+  grid.innerHTML = Object.entries(TOGETHER.MOODS).map(([key, m]) =>
     `<div class="mood-btn" id="mb_${key}" onclick="selectMood('${key}')">
       <span class="emoji">${m.emoji}</span>
       <span>${m.label}</span>
@@ -70,7 +69,7 @@ async function loadMood() {
     const today = new Date().toISOString().split('T')[0];
     const todayEntry = moodData.partner.find(e=>e.date===today);
     if(todayEntry) {
-      const m = MOODS[todayEntry.mood]||{emoji:'💕',label:''};
+      const m = TOGETHER.MOODS[todayEntry.mood]||{emoji:'💕',label:''};
       document.getElementById('partnerMoodToday').textContent = m.emoji;
       document.getElementById('partnerMoodLabel').textContent = m.label;
     } else {
@@ -103,7 +102,7 @@ function renderCalendar() {
   }
   const body = document.getElementById('calBody');
   body.innerHTML = '<div class="mood-calendar">' + days.map(d=>{
-    const m = d.mood ? MOODS[d.mood]||{emoji:'❓'} : null;
+    const m = d.mood ? TOGETHER.MOODS[d.mood]||{emoji:'❓'} : null;
     return `<div class="mood-day">
       <span class="day-emoji">${m?m.emoji:'○'}</span>
       <span class="day-num">${d.day}</span>
