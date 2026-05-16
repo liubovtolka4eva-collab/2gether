@@ -413,7 +413,7 @@ def mood():
                 partner_entries = MoodEntry.query.filter_by(user_id=partner.id).order_by(MoodEntry.date.desc()).limit(30).all()
         return jsonify({
             'mine': [{'date': str(e.date), 'mood': e.mood, 'note': e.note} for e in entries],
-            'partner': [{'date': str(e.date), 'mood': e.mood} for e in partner_entries]
+            'partner': [{'date': str(e.date), 'mood': e.mood, 'note': e.note} for e in partner_entries]
         })
     data = request.get_json()
     today = date.today()
