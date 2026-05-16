@@ -95,7 +95,7 @@ async function loadPhotos() {
   }
   grid.innerHTML = photos.map(p => `
     <div class="photo-item">
-      <img src="/static/uploads/${p.filename}" alt="${p.caption || ''}">
+      <img src="/static/uploads/${p.filename}" alt="${p.caption || ''}" onerror="this.src='/static/uploads/placeholder.png'">
       <button class="photo-delete" onclick="deletePhoto(${p.id})" title="Удалить">✕</button>
       ${p.caption ? `<div class="photo-caption">${p.caption}</div>` : ''}
       <div class="photo-meta">${p.author} • ${p.date}</div>
