@@ -78,17 +78,19 @@ async function loadSchedule() {
 
 async function addSchedule() {
   const data = {
-    title: document.getElementById('schTitle').value,
+    title: document.getElementById('schTitle').value.trim(),
     day: document.getElementById('schDay').value,
     start: document.getElementById('schStart').value,
     end: document.getElementById('schEnd').value
   };
   if(!data.title) { TOGETHER.toast('Введите название','error'); return; }
-  await TOGETHER.api('/api/schedule','POST',data);
+  if(data.start >= data.end) { TOGETHER.toast('Конец должен быть позже начала','error'); return; }
+  const res = await TOGETHER.api('/api/schedule','POST',data);
+  if(res.error) { TOGETHER.toast(res.error,'error'); return; }
   TOGETHER.toast('Добавлено! 💕');
+  document.getElementById('schTitle').value = '';
   loadSchedule();
 }
-
 async function deleteSlot(id) {
   await TOGETHER.api('/api/schedule','DELETE',{id});
   loadSchedule();
