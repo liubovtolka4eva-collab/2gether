@@ -110,6 +110,6 @@ async function findFreeTime() {
   `).join('');
 }
 
-loadSchedule();
+window.addEventListener('load', () => { loadSchedule(); });
 </script>
 {% endblock %}
