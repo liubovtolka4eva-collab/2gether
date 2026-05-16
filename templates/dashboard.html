@@ -20,33 +20,6 @@
   <div style="color:var(--text-light);margin-top:6px;font-size:14px">Вместе с {{ user.couple.created_at.strftime('%d.%m.%Y') }}</div>
 </div>
 
-<div class="grid-3">
-  <!-- Мини-виджет: настроение сегодня -->
-  <div class="card">
-    <div class="card-title">🌸 Настроение сегодня</div>
-    <div id="dashMood" style="text-align:center;font-size:40px">...</div>
-    <div style="text-align:center;margin-top:8px">
-      <a href="/mood" class="btn-secondary" style="font-size:13px;padding:6px 16px">Обновить</a>
-    </div>
-  </div>
-  <!-- Мини-виджет: баллы недели -->
-  <div class="card">
-    <div class="card-title">🏆 Баллы недели</div>
-    <div id="dashScores">...</div>
-    <div style="text-align:center;margin-top:8px">
-      <a href="/tasks" class="btn-secondary" style="font-size:13px;padding:6px 16px">К делам</a>
-    </div>
-  </div>
-  <!-- Мини-виджет: копилки -->
-  <div class="card">
-    <div class="card-title">💰 Копилки</div>
-    <div id="dashSavings">...</div>
-    <div style="text-align:center;margin-top:8px">
-      <a href="/wallet" class="btn-secondary" style="font-size:13px;padding:6px 16px">К кошельку</a>
-    </div>
-  </div>
-</div>
-
 {% else %}
 <!-- НЕТ ПАРЫ -->
 <div class="couple-card">
