@@ -368,7 +368,7 @@ def free_time():
                 merged.append((s, e))
         return merged
 
-    def find_free(busy, day_start=8*60, day_end=23*60):
+    def find_free(busy, day_start=10*60, day_end=23*60):
         free_slots = []
         cur = day_start
         for s, e in busy:
