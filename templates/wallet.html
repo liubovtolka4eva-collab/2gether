@@ -6,7 +6,6 @@
 <div class="tabs">
   <button class="tab-btn active" onclick="showTab('wallet-tab','wt')">💸 Транзакции</button>
   <button class="tab-btn" onclick="showTab('savings-tab','wt')">🐷 Копилки</button>
-  <button class="tab-btn" onclick="showTab('analysis-tab','wt')">🤖 ИИ-анализ</button>
 </div>
 
 <div id="wallet-tab" class="tab-content">
@@ -41,12 +40,6 @@
         <input type="date" id="txDate" class="input-field">
       </div>
       <button class="btn-primary full-width" onclick="addTransaction()">Добавить 💕</button>
-      <div style="border-top:2px solid var(--pink-soft);margin-top:20px;padding-top:16px">
-        <div style="font-weight:800;color:var(--pink-deep);margin-bottom:10px">📷 Загрузить выписку (ИИ)</div>
-        <input type="file" id="receiptFile" accept="image/*" class="input-field" style="padding:8px">
-        <button class="btn-secondary full-width" style="margin-top:8px" onclick="analyzeReceipt()">Анализировать чек 🤖</button>
-        <div id="receiptResult" style="margin-top:10px;color:var(--text-light);font-size:13px"></div>
-      </div>
     </div>
     <div class="card">
       <div class="card-title">📊 История транзакций</div>
@@ -89,16 +82,6 @@
       <div class="card-title">💰 Наши копилки</div>
       <div id="savingsList">Загрузка...</div>
     </div>
-  </div>
-</div>
-
-<div id="analysis-tab" class="tab-content" style="display:none">
-  <div class="card">
-    <div class="card-title">🤖 ИИ-анализ расходов</div>
-    <p style="color:var(--text-light);margin-bottom:20px">ИИ проанализирует ваши транзакции и даст персональные советы</p>
-    <button class="btn-primary" onclick="runAnalysis()">Запустить анализ 🤖</button>
-    <div id="analysisResult" style="margin-top:20px"></div>
-    <div id="categoryChart" style="margin-top:20px"></div>
   </div>
 </div>
 
@@ -206,39 +189,6 @@ async function addFunds() {
   TOGETHER.closeModal('addFundsModal');
   TOGETHER.toast('Пополнено! 💰');
   loadSavings();
-}
-
-async function runAnalysis() {
-  const res = await TOGETHER.api('/api/ai/analyze','POST');
-  const div = document.getElementById('analysisResult');
-  div.innerHTML = res.tips.map(t=>
-    `<div style="background:var(--pink-light);border:1.5px solid var(--pink-soft);border-radius:12px;padding:14px;margin-bottom:10px;font-weight:600">${t}</div>`
-  ).join('');
-  // Category chart
-  const chart = document.getElementById('categoryChart');
-  const entries = Object.entries(res.breakdown).sort((a,b)=>b[1]-a[1]);
-  if(entries.length) {
-    const total = entries.reduce((s,[,v])=>s+v,0);
-    chart.innerHTML = '<div style="font-weight:800;color:var(--pink-deep);margin-bottom:12px">📊 Расходы по категориям</div>' +
-      entries.map(([cat,amt])=>{
-        const pct = Math.round(amt/total*100);
-        return `<div class="stat-bar-wrap">
-          <div class="stat-bar-label"><span>${CATS[cat]||'📦'} ${cat}</span><span>${TOGETHER.formatMoney(amt)} (${pct}%)</span></div>
-          <div class="stat-bar"><div class="stat-bar-fill" style="width:${pct}%"></div></div>
-        </div>`;
-      }).join('');
-  }
-}
-
-async function analyzeReceipt() {
-  const file = document.getElementById('receiptFile').files[0];
-  if(!file) { TOGETHER.toast('Выберите изображение','error'); return; }
-  document.getElementById('receiptResult').textContent = '🤖 Анализирую чек...';
-  // В реальной версии здесь отправляется изображение на Claude API
-  setTimeout(()=>{
-    document.getElementById('receiptResult').innerHTML = 
-      '<div style="color:var(--pink-deep);font-weight:700">✅ Анализ завершён! Транзакция добавлена автоматически.<br><small style="color:var(--text-light)">Подключите Claude API для реального ИИ-распознавания</small></div>';
-  }, 1500);
 }
 
 window.addEventListener('load', () => {
