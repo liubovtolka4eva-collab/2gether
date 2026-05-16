@@ -16,6 +16,7 @@
     <div class="card-title">💑 Настроение партнёра</div>
     <div id="partnerMoodToday" style="text-align:center;padding:20px;font-size:60px">...</div>
     <div id="partnerMoodLabel" style="text-align:center;color:var(--text-light);font-weight:700">Загрузка...</div>
+    <div id="partnerMoodNote" style="margin-top:12px;background:var(--pink-light);border-radius:12px;padding:12px;font-size:14px;color:var(--text);display:none"></div>
   </div>
 </div>
 
@@ -88,6 +89,7 @@ async function saveMood() {
 
 async function loadMood() {
   moodData = await TOGETHER.api('/api/mood');
+
   if(moodData.partner.length) {
     const today = new Date().toISOString().split('T')[0];
     const todayEntry = moodData.partner.find(e=>e.date===today);
@@ -95,20 +97,31 @@ async function loadMood() {
       const m = TOGETHER.MOODS[todayEntry.mood]||{emoji:'💕',label:''};
       document.getElementById('partnerMoodToday').textContent = m.emoji;
       document.getElementById('partnerMoodLabel').textContent = m.label;
+      const noteEl = document.getElementById('partnerMoodNote');
+      if(todayEntry.note) {
+        noteEl.textContent = '💬 ' + todayEntry.note;
+        noteEl.style.display = 'block';
+      } else {
+        noteEl.style.display = 'none';
+      }
     } else {
       document.getElementById('partnerMoodToday').textContent = '🤷';
       document.getElementById('partnerMoodLabel').textContent = 'Ещё не указано';
+      document.getElementById('partnerMoodNote').style.display = 'none';
     }
   } else {
     document.getElementById('partnerMoodToday').textContent = '💕';
     document.getElementById('partnerMoodLabel').textContent = 'Нет партнёра';
+    document.getElementById('partnerMoodNote').style.display = 'none';
   }
+
   const today = new Date().toISOString().split('T')[0];
   const todayMine = moodData.mine.find(e=>e.date===today);
   if(todayMine) {
     selectMood(todayMine.mood);
     document.getElementById('moodNote').value = todayMine.note || '';
   }
+
   renderCalendar();
 }
 
