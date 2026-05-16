@@ -18,13 +18,14 @@
     <div id="partnerMoodLabel" style="text-align:center;color:var(--text-light);font-weight:700">Загрузка...</div>
   </div>
 </div>
+
 <div class="card" style="margin-top:20px">
-  <div class="card-title">📅 Календарь настроения</div>
+  <div class="card-title">📅 Последние 28 дней</div>
   <div class="tabs" style="margin-bottom:16px">
     <button class="tab-btn active" onclick="switchCal('mine',event)">Моё</button>
     <button class="tab-btn" onclick="switchCal('partner',event)">Партнёра</button>
   </div>
-  <div class="mood-calendar" id="moodCalendar" style="grid-template-columns:repeat(7,1fr)">
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">
     <div style="text-align:center;font-weight:800;color:var(--pink-deep);font-size:12px">Пн</div>
     <div style="text-align:center;font-weight:800;color:var(--pink-deep);font-size:12px">Вт</div>
     <div style="text-align:center;font-weight:800;color:var(--pink-deep);font-size:12px">Ср</div>
@@ -35,6 +36,28 @@
   </div>
   <div id="calBody"></div>
 </div>
+
+<div id="notePopup" style="display:none;position:fixed;inset:0;z-index:1000;align-items:center;justify-content:center;background:rgba(100,30,60,0.35);backdrop-filter:blur(4px)">
+  <div style="background:white;border-radius:18px;padding:28px;max-width:360px;width:90%;border:2px solid var(--pink-soft);box-shadow:0 16px 48px rgba(196,86,110,0.25)">
+    <div id="notePopupEmoji" style="font-size:48px;text-align:center;margin-bottom:8px"></div>
+    <div id="notePopupMood" style="text-align:center;font-weight:800;color:var(--pink-deep);font-size:18px;margin-bottom:8px"></div>
+    <div id="notePopupDate" style="text-align:center;color:var(--text-light);font-size:13px;margin-bottom:16px"></div>
+    <div id="notePopupText" style="background:var(--pink-light);border-radius:12px;padding:14px;font-size:15px;color:var(--text);line-height:1.5;min-height:48px"></div>
+    <button onclick="closeNote()" style="margin-top:16px;width:100%" class="btn-secondary">Закрыть</button>
+  </div>
+</div>
+
+<style>
+.mood-day { cursor:pointer; transition: transform 0.15s; position:relative; }
+.mood-day:hover { transform: scale(1.12); }
+.mood-day.has-note::after {
+  content:'📝';
+  position:absolute;
+  bottom:1px; right:1px;
+  font-size:9px;
+}
+</style>
+
 <script>
 let moodData = {mine:[], partner:[]};
 let selectedMood = null;
@@ -58,7 +81,7 @@ function selectMood(key) {
 
 async function saveMood() {
   if(!selectedMood) { TOGETHER.toast('Выберите настроение','error'); return; }
-  await TOGETHER.api('/api/mood','POST',{mood:selectedMood,note:document.getElementById('moodNote').value});
+  await TOGETHER.api('/api/mood','POST',{mood:selectedMood, note:document.getElementById('moodNote').value});
   TOGETHER.toast('Настроение сохранено 💕');
   loadMood();
 }
@@ -80,6 +103,12 @@ async function loadMood() {
     document.getElementById('partnerMoodToday').textContent = '💕';
     document.getElementById('partnerMoodLabel').textContent = 'Нет партнёра';
   }
+  const today = new Date().toISOString().split('T')[0];
+  const todayMine = moodData.mine.find(e=>e.date===today);
+  if(todayMine) {
+    selectMood(todayMine.mood);
+    document.getElementById('moodNote').value = todayMine.note || '';
+  }
   renderCalendar();
 }
 
@@ -93,26 +122,44 @@ function switchCal(view, e) {
 function renderCalendar() {
   const entries = calView==='mine' ? moodData.mine : moodData.partner;
   const map = {};
-  entries.forEach(e=>map[e.date]=e.mood);
+  entries.forEach(e=>map[e.date]=e);
   const days = [];
   for(let i=27;i>=0;i--) {
     const d = new Date(); d.setDate(d.getDate()-i);
     const key = d.toISOString().split('T')[0];
-    days.push({key, day:d.getDate(), mood:map[key]||null});
+    days.push({key, day:d.getDate(), entry:map[key]||null});
   }
-  const body = document.getElementById('calBody');
-  body.innerHTML = '<div class="mood-calendar">' + days.map(d=>{
-    const m = d.mood ? TOGETHER.MOODS[d.mood]||{emoji:'❓'} : null;
-    return `<div class="mood-day">
-      <span class="day-emoji">${m?m.emoji:'○'}</span>
-      <span class="day-num">${d.day}</span>
-    </div>`;
-  }).join('') + '</div>';
+  document.getElementById('calBody').innerHTML =
+    '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">' +
+    days.map(d => {
+      const m = d.entry ? TOGETHER.MOODS[d.entry.mood]||{emoji:'❓',label:'?'} : null;
+      const hasNote = d.entry && d.entry.note;
+      return `<div class="mood-day${hasNote?' has-note':''}" onclick="showNote('${d.key}')">
+        <span class="day-emoji">${m ? m.emoji : '○'}</span>
+        <span class="day-num">${d.day}</span>
+      </div>`;
+    }).join('') + '</div>';
 }
 
-window.addEventListener('load', () => { 
+function showNote(dateKey) {
+  const entries = calView==='mine' ? moodData.mine : moodData.partner;
+  const entry = entries.find(e=>e.date===dateKey);
+  if(!entry) return;
+  const m = TOGETHER.MOODS[entry.mood]||{emoji:'💕',label:entry.mood};
+  document.getElementById('notePopupEmoji').textContent = m.emoji;
+  document.getElementById('notePopupMood').textContent = m.label;
+  document.getElementById('notePopupDate').textContent = dateKey;
+  document.getElementById('notePopupText').textContent = entry.note || 'Без заметки';
+  document.getElementById('notePopup').style.display = 'flex';
+}
+
+function closeNote() {
+  document.getElementById('notePopup').style.display = 'none';
+}
+
+window.addEventListener('load', () => {
   buildMoodGrid();
-  loadMood(); 
+  loadMood();
 });
 </script>
 {% endblock %}
