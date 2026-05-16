@@ -101,6 +101,18 @@
 <script>
 const CATS = {'Продукты':'🛒','Рестораны':'🍽️','Транспорт':'🚗','Развлечения':'🎬','Одежда':'👗','Здоровье':'💊','Дом':'🏠','Красота':'💄','Спорт':'🏋️','Другое':'📦'};
 
+// Стили для расходов
+const style = document.createElement('style');
+style.innerHTML = `
+  .tx-author {
+    font-size: 12px;
+    color: rgba(107, 114, 128, 0.6);
+    margin-top: 4px;
+    font-style: italic;
+  }
+`;
+document.head.appendChild(style);
+
 function showTab(id, group) {
   document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
   document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
@@ -114,18 +126,50 @@ async function loadTransactions() {
   const txs = await TOGETHER.api('/api/transactions');
   const list = document.getElementById('txList');
   let expTotal=0, incTotal=0;
+  
+  // Подсчитываем расходы по пользователям
+  const userExpenses = {};
+  
   list.innerHTML = txs.map(t => {
-    if(t.type==='expense') expTotal+=t.amount; else incTotal+=t.amount;
+    if(t.type==='expense') {
+      expTotal+=t.amount;
+      userExpenses[t.user_name] = (userExpenses[t.user_name]||0) + t.amount;
+    } else {
+      incTotal+=t.amount;
+    }
+    
     const icon = CATS[t.category]||'📦';
+    
     return `<li class="tx-item">
       <span class="tx-icon">${icon}</span>
       <div class="tx-info">
         <div class="tx-title">${t.description||t.category}</div>
         <div class="tx-date">${t.category} • ${t.date}</div>
+        <div class="tx-author">${t.user_name}</div>
       </div>
       <span class="tx-amount ${t.type}">${t.type==='expense'?'−':'+'} ${TOGETHER.formatMoney(t.amount)}</span>
     </li>`;
   }).join('') || '<li style="text-align:center;color:var(--text-light);padding:20px">Нет транзакций</li>';
+  
+  // Добавляем таблицу с расходами по пользователям
+  let summaryHTML = '<div style="margin-top:20px;border-top:2px solid var(--pink-soft);padding-top:16px"><div style="font-weight:800;color:var(--pink-deep);margin-bottom:12px">💸 Кто потратил</div>';
+  
+  if(Object.keys(userExpenses).length > 0) {
+    summaryHTML += '<table style="width:100%;border-collapse:collapse">';
+    for(const [name, amount] of Object.entries(userExpenses)) {
+      summaryHTML += `<tr style="border-bottom:1px solid var(--pink-soft)">
+        <td style="padding:10px;text-align:left">${name}</td>
+        <td style="padding:10px;text-align:right;font-weight:700;color:var(--pink-deep)">${TOGETHER.formatMoney(amount)}</td>
+      </tr>`;
+    }
+    summaryHTML += '</table>';
+  } else {
+    summaryHTML += '<p style="color:var(--text-light);text-align:center;padding:10px">Нет расходов</p>';
+  }
+  summaryHTML += '</div>';
+  
+  list.insertAdjacentHTML('afterend', summaryHTML);
+  
   document.getElementById('totalExpense').textContent = TOGETHER.formatMoney(expTotal);
   document.getElementById('totalIncome').textContent = TOGETHER.formatMoney(incTotal);
 }
