@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -516,29 +515,6 @@ def delete_photo(photo_id):
     return jsonify({'success': True})
  
  
-@app.route('/api/ai/analyze', methods=['POST'])
-@login_required
-def ai_analyze():
-    if not current_user.couple_id:
-        return jsonify({'error': 'Нет пары'}), 400
-    txs = Transaction.query.filter_by(couple_id=current_user.couple_id).order_by(Transaction.date.desc()).limit(20).all()
-    summary = {}
-    for t in txs:
-        if t.type == 'expense':
-            summary[t.category] = summary.get(t.category, 0) + t.amount
-    tips = []
-    total = sum(summary.values())
-    for cat, amt in sorted(summary.items(), key=lambda x: -x[1]):
-        pct = (amt / total * 100) if total else 0
-        if pct > 40:
-            tips.append(f"💡 На «{cat}» уходит {pct:.0f}% бюджета — попробуйте сократить эту статью расходов.")
-        elif cat.lower() in ['рестораны', 'кафе', 'доставка еды'] and pct > 15:
-            tips.append(f"🍳 Много тратите на еду вне дома ({amt:.0f} ₽). Домашняя готовка сэкономит до 50%!")
-    if not tips:
-        tips.append("✅ Расходы выглядят сбалансированно! Продолжайте в том же духе 💕")
-    return jsonify({'tips': tips, 'breakdown': summary})
- 
- 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
@@ -590,3 +566,4 @@ def api_me():
         'username': current_user.username,
         'couple_id': current_user.couple_id,
     })
+
