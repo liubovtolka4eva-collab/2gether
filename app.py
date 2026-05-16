@@ -313,12 +313,18 @@ def schedule():
             db.session.commit()
         return jsonify({'success': True})
     data = request.get_json()
+    new_start = data['start']
+    new_end = data['end']
+    existing = Schedule.query.filter_by(user_id=current_user.id, day_of_week=int(data['day'])).all()
+    for s in existing:
+        if not (new_end <= s.start_time or new_start >= s.end_time):
+            return jsonify({'error': f'Пересекается с "{s.title}" ({s.start_time}–{s.end_time})'}), 400
     slot = Schedule(
         user_id=current_user.id,
         title=data['title'],
         day_of_week=int(data['day']),
-        start_time=data['start'],
-        end_time=data['end'],
+        start_time=new_start,
+        end_time=new_end,
         is_busy=True
     )
     db.session.add(slot)
