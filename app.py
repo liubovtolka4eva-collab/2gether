@@ -247,10 +247,12 @@ def transactions():
         return jsonify({'error': 'Нет пары'}), 400
     if request.method == 'GET':
         txs = Transaction.query.filter_by(couple_id=current_user.couple_id).order_by(Transaction.date.desc()).all()
+        # Получаем информацию о пользователях
+        users = {u.id: u.display_name for u in User.query.filter_by(couple_id=current_user.couple_id).all()}
         return jsonify([{
             'id': t.id, 'amount': t.amount, 'category': t.category,
             'description': t.description, 'date': str(t.date),
-            'type': t.type, 'user_id': t.user_id
+            'type': t.type, 'user_id': t.user_id, 'user_name': users.get(t.user_id, '?')
         } for t in txs])
     data = request.get_json()
     tx = Transaction(
@@ -313,18 +315,12 @@ def schedule():
             db.session.commit()
         return jsonify({'success': True})
     data = request.get_json()
-    new_start = data['start']
-    new_end = data['end']
-    existing = Schedule.query.filter_by(user_id=current_user.id, day_of_week=int(data['day'])).all()
-    for s in existing:
-        if s.title.strip().lower() == data['title'].strip().lower() and s.start_time == data['start'] and s.end_time == data['end']:
-            return jsonify({'error': f'Такая запись уже существует'}), 400
     slot = Schedule(
         user_id=current_user.id,
         title=data['title'],
         day_of_week=int(data['day']),
-        start_time=new_start,
-        end_time=new_end,
+        start_time=data['start'],
+        end_time=data['end'],
         is_busy=True
     )
     db.session.add(slot)
@@ -342,63 +338,15 @@ def free_time():
     ).first()
     if not partner:
         return jsonify([])
-
     my_busy = Schedule.query.filter_by(user_id=current_user.id).all()
     partner_busy = Schedule.query.filter_by(user_id=partner.id).all()
     days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
-
-    def to_minutes(t):
-        h, m = map(int, t.split(':'))
-        return h * 60 + m
-
-    def to_hhmm(m):
-        return f"{m // 60:02d}:{m % 60:02d}"
-
-    def get_busy_intervals(slots, day):
-        intervals = []
-        for s in slots:
-            if s.day_of_week == day:
-                intervals.append((to_minutes(s.start_time), to_minutes(s.end_time)))
-        intervals.sort()
-        merged = []
-        for s, e in intervals:
-            if merged and s <= merged[-1][1]:
-                merged[-1] = (merged[-1][0], max(merged[-1][1], e))
-            else:
-                merged.append((s, e))
-        return merged
-
-    def find_free(busy, day_start=10*60, day_end=23*60):
-        free_slots = []
-        cur = day_start
-        for s, e in busy:
-            if cur < s:
-                free_slots.append((cur, s))
-            cur = max(cur, e)
-        if cur < day_end:
-            free_slots.append((cur, day_end))
-        return free_slots
-
     free = []
     for day in range(7):
-        my_intervals = get_busy_intervals(my_busy, day)
-        p_intervals = get_busy_intervals(partner_busy, day)
-        all_busy = sorted(my_intervals + p_intervals)
-
-        merged = []
-        for s, e in all_busy:
-            if merged and s <= merged[-1][1]:
-                merged[-1] = (merged[-1][0], max(merged[-1][1], e))
-            else:
-                merged.append([s, e])
-
-        free_slots = find_free(merged)
-        free_slots = [(s, e) for s, e in free_slots if e - s >= 30]
-
-        if free_slots:
-            slots_str = [f"{to_hhmm(s)} – {to_hhmm(e)}" for s, e in free_slots]
-            free.append({'day': days[day], 'slots': slots_str})
-
+        my_day = [s for s in my_busy if s.day_of_week == day]
+        p_day = [s for s in partner_busy if s.day_of_week == day]
+        if not my_day and not p_day:
+            free.append({'day': days[day], 'slots': ['10:00-22:00 — весь день свободен!']})
     return jsonify(free)
  
  
@@ -467,7 +415,7 @@ def mood():
                 partner_entries = MoodEntry.query.filter_by(user_id=partner.id).order_by(MoodEntry.date.desc()).limit(30).all()
         return jsonify({
             'mine': [{'date': str(e.date), 'mood': e.mood, 'note': e.note} for e in entries],
-            'partner': [{'date': str(e.date), 'mood': e.mood, 'note': e.note} for e in partner_entries]
+            'partner': [{'date': str(e.date), 'mood': e.mood} for e in partner_entries]
         })
     data = request.get_json()
     today = date.today()
