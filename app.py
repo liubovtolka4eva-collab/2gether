@@ -317,8 +317,8 @@ def schedule():
     new_end = data['end']
     existing = Schedule.query.filter_by(user_id=current_user.id, day_of_week=int(data['day'])).all()
     for s in existing:
-        if not (new_end <= s.start_time or new_start >= s.end_time):
-            return jsonify({'error': f'Пересекается с "{s.title}" ({s.start_time}–{s.end_time})'}), 400
+        if s.title.strip().lower() == data['title'].strip().lower() and s.start_time == data['start'] and s.end_time == data['end']:
+            return jsonify({'error': f'Такая запись уже существует'}), 400
     slot = Schedule(
         user_id=current_user.id,
         title=data['title'],
