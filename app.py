@@ -342,13 +342,38 @@ def free_time():
     partner_busy = Schedule.query.filter_by(user_id=partner.id).all()
     days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
     free = []
+    
     for day in range(7):
         my_day = [s for s in my_busy if s.day_of_week == day]
         p_day = [s for s in partner_busy if s.day_of_week == day]
+
         if not my_day and not p_day:
             free.append({'day': days[day], 'slots': ['10:00-22:00 — весь день свободен!']})
+
+        elif my_day or p_day:
+            busy_times = sorted(my_day + p_day, key=lambda s: s.start_time)
+            slots = []
+
+            if busy_times:
+                first_start = busy_times[0].start_time
+                if first_start > '10:00':
+                    slots.append(f"10:00-{first_start}")
+
+                for i in range(len(busy_times) - 1):
+                    end_time = busy_times[i].end_time
+                    next_start = busy_times[i + 1].start_time
+                    if end_time < next_start:
+                        slots.append(f"{end_time}-{next_start}")
+                
+                # Свободное время после последнего занятия
+                last_end = busy_times[-1].end_time
+                if last_end < '22:00':
+                    slots.append(f"{last_end}-22:00")
+            
+            if slots:
+                free.append({'day': days[day], 'slots': slots})
+    
     return jsonify(free)
- 
  
 @app.route('/api/tasks', methods=['GET', 'POST'])
 @login_required
