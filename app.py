@@ -5,8 +5,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime, date
 import os, random, string, qrcode, io, base64
-import cloudinary
-import cloudinary.uploader
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '2gether-secret-key-2024'
@@ -18,12 +16,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-
-cloudinary.config(
-    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    api_key=os.environ.get('CLOUDINARY_API_KEY'),
-    api_secret=os.environ.get('CLOUDINARY_API_SECRET')
-)
 
 db = SQLAlchemy(app)
 with app.app_context():
@@ -144,7 +136,6 @@ class Photo(db.Model):
     couple_id = db.Column(db.Integer, db.ForeignKey('couple.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     filename = db.Column(db.String(255))
-    url = db.Column(db.String(500), nullable=True)
     caption = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -517,7 +508,6 @@ def photos():
         return jsonify([{
             'id': p.id,
             'filename': p.filename,
-            'url': p.url or f'/static/uploads/{p.filename}',
             'caption': p.caption,
             'date': p.created_at.strftime('%d.%m.%Y'),
             'author': users.get(p.user_id, '?')
@@ -527,21 +517,18 @@ def photos():
     file = request.files['photo']
     caption = request.form.get('caption', '')
     if file.filename:
-        try:
-            result = cloudinary.uploader.upload(file, folder='2gether')
-            photo = Photo(
-                couple_id=current_user.couple_id,
-                user_id=current_user.id,
-                filename=result['public_id'],
-                url=result['secure_url'],
-                caption=caption
-            )
-            db.session.add(photo)
-            db.session.commit()
-            return jsonify({'success': True})
-        except Exception as e:
-            return jsonify({'error': f'Ошибка загрузки: {str(e)}'}), 400
+        fname = secure_filename(f"{current_user.id}_{datetime.now().timestamp()}_{file.filename}")
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
+        photo = Photo(couple_id=current_user.couple_id, user_id=current_user.id, filename=fname, caption=caption)
+        db.session.add(photo)
+        db.session.commit()
+        return jsonify({'success': True})
     return jsonify({'error': 'Ошибка загрузки'}), 400
+
+@app.route('/static/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/api/photos/<int:photo_id>', methods=['DELETE'])
 @login_required
@@ -549,11 +536,6 @@ def delete_photo(photo_id):
     photo = Photo.query.get_or_404(photo_id)
     if photo.couple_id != current_user.couple_id:
         return jsonify({'error': 'Нет доступа'}), 403
-    try:
-        if photo.filename:
-            cloudinary.uploader.destroy(photo.filename)
-    except:
-        pass
     db.session.delete(photo)
     db.session.commit()
     return jsonify({'success': True})
