@@ -155,9 +155,7 @@ with app.app_context():
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
-
-@app.route('/')
+ @app.route('/')
 def index():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
@@ -199,7 +197,6 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -210,7 +207,6 @@ def dashboard():
             User.id != current_user.id
         ).first()
     return render_template('dashboard.html', user=current_user, partner=partner)
-
 
 @app.route('/api/invite/generate', methods=['POST'])
 @login_required
@@ -244,7 +240,6 @@ def join_couple(code):
     inviter.invite_code = None
     db.session.commit()
     return redirect(url_for('dashboard'))
-
 
 @app.route('/api/transactions', methods=['GET', 'POST'])
 @login_required
@@ -299,9 +294,7 @@ def savings():
     db.session.add(goal)
     db.session.commit()
     return jsonify({'success': True, 'id': goal.id})
-
-
-@app.route('/api/schedule', methods=['GET', 'POST', 'DELETE'])
+ @app.route('/api/schedule', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def schedule():
     if request.method == 'GET':
@@ -400,7 +393,6 @@ def free_time():
 
     return jsonify(free)
 
-
 @app.route('/api/tasks', methods=['GET', 'POST'])
 @login_required
 def home_tasks():
@@ -449,9 +441,7 @@ def task_scores():
         scores[t.completed_by] = scores.get(t.completed_by, 0) + t.points
     users = User.query.filter_by(couple_id=current_user.couple_id).all()
     return jsonify([{'user_id': u.id, 'name': u.display_name, 'score': scores.get(u.id, 0)} for u in users])
-
-
-@app.route('/api/mood', methods=['GET', 'POST'])
+ @app.route('/api/mood', methods=['GET', 'POST'])
 @login_required
 def mood():
     if request.method == 'GET':
@@ -479,7 +469,6 @@ def mood():
         db.session.add(entry)
     db.session.commit()
     return jsonify({'success': True})
-
 
 @app.route('/api/wishlist', methods=['GET', 'POST', 'DELETE', 'PATCH'])
 @login_required
@@ -519,7 +508,6 @@ def wishlist():
     db.session.add(item)
     db.session.commit()
     return jsonify({'success': True})
-
 
 @app.route('/api/photos', methods=['GET', 'POST'])
 @login_required
@@ -591,9 +579,7 @@ def ai_analyze():
     if not tips:
         tips.append("Расходы выглядят сбалансированно! Продолжайте в том же духе 💕")
     return jsonify({'tips': tips, 'breakdown': summary})
-
-
-if __name__ == '__main__':
+ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         print("DB ready")
