@@ -192,6 +192,7 @@ def login():
             return jsonify({'success': True, 'redirect': '/dashboard'})
         return jsonify({'error': 'Неверный email или пароль'}), 401
     return render_template('auth.html', mode='login')
+
 @app.route('/logout')
 @login_required
 def logout():
@@ -298,6 +299,8 @@ def savings():
     db.session.add(goal)
     db.session.commit()
     return jsonify({'success': True, 'id': goal.id})
+
+
 @app.route('/api/schedule', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def schedule():
@@ -446,6 +449,8 @@ def task_scores():
         scores[t.completed_by] = scores.get(t.completed_by, 0) + t.points
     users = User.query.filter_by(couple_id=current_user.couple_id).all()
     return jsonify([{'user_id': u.id, 'name': u.display_name, 'score': scores.get(u.id, 0)} for u in users])
+
+
 @app.route('/api/mood', methods=['GET', 'POST'])
 @login_required
 def mood():
@@ -586,6 +591,8 @@ def ai_analyze():
     if not tips:
         tips.append("Расходы выглядят сбалансированно! Продолжайте в том же духе 💕")
     return jsonify({'tips': tips, 'breakdown': summary})
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
