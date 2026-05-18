@@ -27,7 +27,7 @@
   <div class="card-title">🖼️ Все фото</div>
   <div class="photo-grid" id="photoGrid"><p style="color:var(--text-light)">Загрузка...</p></div>
 </div>
- 
+
 <style>
 .photo-item { position: relative; }
 .photo-delete {
@@ -46,7 +46,7 @@
 }
 .photo-item:hover .photo-delete { opacity: 1; }
 </style>
- 
+
 <script>
 function previewPhoto(e) {
   const file = e.target.files[0];
@@ -58,7 +58,7 @@ function previewPhoto(e) {
   };
   reader.readAsDataURL(file);
 }
- 
+
 async function uploadPhoto() {
   const file = document.getElementById('photoFile').files[0];
   if (!file) { TOGETHER.toast('Выберите фото', 'error'); return; }
@@ -74,7 +74,7 @@ async function uploadPhoto() {
     loadPhotos();
   }
 }
- 
+
 async function deletePhoto(id) {
   if (!confirm('Удалить это фото?')) return;
   const res = await fetch(`/api/photos/${id}`, { method: 'DELETE' });
@@ -84,7 +84,7 @@ async function deletePhoto(id) {
     loadPhotos();
   }
 }
- 
+
 async function loadPhotos() {
   const photos = await TOGETHER.api('/api/photos');
   document.getElementById('photoCount').textContent = photos.length;
@@ -95,13 +95,13 @@ async function loadPhotos() {
   }
   grid.innerHTML = photos.map(p => `
     <div class="photo-item">
-      <img src="/static/uploads/${p.filename}" alt="${p.caption || ''}" onerror="this.src='/static/uploads/placeholder.png'">
+      <img src="${p.url}" alt="${p.caption || ''}" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;">
       <button class="photo-delete" onclick="deletePhoto(${p.id})" title="Удалить">✕</button>
       ${p.caption ? `<div class="photo-caption">${p.caption}</div>` : ''}
       <div class="photo-meta">${p.author} • ${p.date}</div>
     </div>`).join('');
 }
- 
+
 window.addEventListener('load', () => { loadPhotos(); });
 </script>
 {% endblock %}
