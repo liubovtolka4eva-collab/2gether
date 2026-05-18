@@ -26,10 +26,11 @@ cloudinary.config(
 )
 
 db = SQLAlchemy(app)
+with app.app_context():
+    db.create_all()
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-# ========== МОДЕЛИ ==========
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -41,6 +42,8 @@ class User(db.Model):
     invite_code = db.Column(db.String(10), unique=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
+    is_authenticated_flag = db.Column(db.Boolean, default=True)
+    is_anonymous_flag = db.Column(db.Boolean, default=False)
 
     def get_id(self): return str(self.id)
     @property
@@ -54,12 +57,14 @@ class User(db.Model):
     def generate_invite_code(self):
         self.invite_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
 
+
 class Couple(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     anniversary = db.Column(db.Date, nullable=True)
     members = db.relationship('User', backref='couple', lazy=True)
+
 
 class CoupleInvite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -68,6 +73,7 @@ class CoupleInvite(db.Model):
     code = db.Column(db.String(10), unique=True)
     status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -79,6 +85,7 @@ class Transaction(db.Model):
     date = db.Column(db.Date, default=date.today)
     type = db.Column(db.String(10))
 
+
 class SavingsGoal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     couple_id = db.Column(db.Integer, db.ForeignKey('couple.id'))
@@ -88,6 +95,7 @@ class SavingsGoal(db.Model):
     emoji = db.Column(db.String(10), default='🎯')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+
 class Schedule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -96,6 +104,7 @@ class Schedule(db.Model):
     start_time = db.Column(db.String(5))
     end_time = db.Column(db.String(5))
     is_busy = db.Column(db.Boolean, default=True)
+
 
 class HomeTask(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -108,12 +117,14 @@ class HomeTask(db.Model):
     week_number = db.Column(db.Integer)
     status = db.Column(db.String(20), default='pending')
 
+
 class MoodEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     date = db.Column(db.Date, default=date.today)
     mood = db.Column(db.String(20))
     note = db.Column(db.Text, nullable=True)
+
 
 class WishlistItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -127,6 +138,7 @@ class WishlistItem(db.Model):
     is_fulfilled = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+
 class Photo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     couple_id = db.Column(db.Integer, db.ForeignKey('couple.id'))
@@ -136,7 +148,15 @@ class Photo(db.Model):
     caption = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# ========== СТРАНИЦЫ ==========
+
+with app.app_context():
+    db.create_all()
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
 @app.route('/')
 def index():
     if current_user.is_authenticated:
@@ -172,12 +192,12 @@ def login():
             return jsonify({'success': True, 'redirect': '/dashboard'})
         return jsonify({'error': 'Неверный email или пароль'}), 401
     return render_template('auth.html', mode='login')
-
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
 
 @app.route('/dashboard')
 @login_required
@@ -190,51 +210,6 @@ def dashboard():
         ).first()
     return render_template('dashboard.html', user=current_user, partner=partner)
 
-@app.route('/wallet')
-@login_required
-def wallet_page():
-    return render_template('wallet.html', active='wallet')
-
-@app.route('/schedule')
-@login_required
-def schedule_page():
-    return render_template('schedule.html', active='schedule')
-
-@app.route('/tasks')
-@login_required
-def tasks_page():
-    return render_template('tasks.html', active='tasks')
-
-@app.route('/mood')
-@login_required
-def mood_page():
-    return render_template('mood.html', active='mood')
-
-@app.route('/wishlist')
-@login_required
-def wishlist_page():
-    partner_id = None
-    if current_user.couple_id:
-        p = User.query.filter(User.couple_id == current_user.couple_id, User.id != current_user.id).first()
-        if p:
-            partner_id = p.id
-    return render_template('wishlist.html', active='wishlist', partner_id=partner_id)
-
-@app.route('/photos')
-@login_required
-def photos_page():
-    return render_template('photos.html', active='photos')
-
-# ========== API МАРШРУТЫ ==========
-@app.route('/api/me')
-@login_required
-def api_me():
-    return jsonify({
-        'id': current_user.id,
-        'display_name': current_user.display_name,
-        'username': current_user.username,
-        'couple_id': current_user.couple_id,
-    })
 
 @app.route('/api/invite/generate', methods=['POST'])
 @login_required
@@ -268,6 +243,7 @@ def join_couple(code):
     inviter.invite_code = None
     db.session.commit()
     return redirect(url_for('dashboard'))
+
 
 @app.route('/api/transactions', methods=['GET', 'POST'])
 @login_required
@@ -310,9 +286,8 @@ def savings():
     data = request.get_json()
     if data.get('action') == 'add_funds':
         goal = SavingsGoal.query.get(data['id'])
-        if goal:
-            goal.current_amount = min(goal.current_amount + float(data['amount']), goal.target_amount)
-            db.session.commit()
+        goal.current_amount = min(goal.current_amount + float(data['amount']), goal.target_amount)
+        db.session.commit()
         return jsonify({'success': True})
     goal = SavingsGoal(
         couple_id=current_user.couple_id,
@@ -323,7 +298,6 @@ def savings():
     db.session.add(goal)
     db.session.commit()
     return jsonify({'success': True, 'id': goal.id})
-
 @app.route('/api/schedule', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def schedule():
@@ -342,12 +316,18 @@ def schedule():
             db.session.commit()
         return jsonify({'success': True})
     data = request.get_json()
+    new_start = data['start']
+    new_end = data['end']
+    existing = Schedule.query.filter_by(user_id=current_user.id, day_of_week=int(data['day'])).all()
+    for s in existing:
+        if s.title.strip().lower() == data['title'].strip().lower() and s.start_time == new_start and s.end_time == new_end:
+            return jsonify({'error': 'Такая запись уже существует'}), 400
     slot = Schedule(
         user_id=current_user.id,
         title=data['title'],
         day_of_week=int(data['day']),
-        start_time=data['start'],
-        end_time=data['end'],
+        start_time=new_start,
+        end_time=new_end,
         is_busy=True
     )
     db.session.add(slot)
@@ -417,6 +397,7 @@ def free_time():
 
     return jsonify(free)
 
+
 @app.route('/api/tasks', methods=['GET', 'POST'])
 @login_required
 def home_tasks():
@@ -436,11 +417,10 @@ def home_tasks():
     data = request.get_json()
     if data.get('action') == 'complete':
         task = HomeTask.query.get(data['id'])
-        if task:
-            task.status = 'done'
-            task.completed_by = current_user.id
-            task.completed_at = datetime.utcnow()
-            db.session.commit()
+        task.status = 'done'
+        task.completed_by = current_user.id
+        task.completed_at = datetime.utcnow()
+        db.session.commit()
         return jsonify({'success': True})
     week = date.today().isocalendar()[1]
     task = HomeTask(
@@ -466,7 +446,6 @@ def task_scores():
         scores[t.completed_by] = scores.get(t.completed_by, 0) + t.points
     users = User.query.filter_by(couple_id=current_user.couple_id).all()
     return jsonify([{'user_id': u.id, 'name': u.display_name, 'score': scores.get(u.id, 0)} for u in users])
-
 @app.route('/api/mood', methods=['GET', 'POST'])
 @login_required
 def mood():
@@ -495,6 +474,7 @@ def mood():
         db.session.add(entry)
     db.session.commit()
     return jsonify({'success': True})
+
 
 @app.route('/api/wishlist', methods=['GET', 'POST', 'DELETE', 'PATCH'])
 @login_required
@@ -535,14 +515,14 @@ def wishlist():
     db.session.commit()
     return jsonify({'success': True})
 
-@app.route('/api/photos', methods=['GET', 'POST', 'DELETE'])
+
+@app.route('/api/photos', methods=['GET', 'POST'])
 @login_required
 def photos():
     if not current_user.couple_id:
         return jsonify({'error': 'Нет пары'}), 400
-    
     if request.method == 'GET':
-        photos_list = Photo.query.filter_by(couple_id=current_user.couple_id).order_by(Photo.created_at.desc()).all()
+        ps = Photo.query.filter_by(couple_id=current_user.couple_id).order_by(Photo.created_at.desc()).all()
         users = {u.id: u.display_name for u in User.query.filter_by(couple_id=current_user.couple_id).all()}
         return jsonify([{
             'id': p.id,
@@ -551,54 +531,39 @@ def photos():
             'caption': p.caption,
             'date': p.created_at.strftime('%d.%m.%Y'),
             'author': users.get(p.user_id, '?')
-        } for p in photos_list])
-    
-    if request.method == 'DELETE':
-        photo_id = request.get_json().get('id')
-        photo = Photo.query.get(photo_id)
-        if photo and photo.couple_id == current_user.couple_id:
-            if photo.filename and cloudinary.config().cloud_name:
-                try:
-                    cloudinary.uploader.destroy(photo.filename)
-                except:
-                    pass
-            db.session.delete(photo)
-            db.session.commit()
-        return jsonify({'success': True})
-    
-    # POST - загрузка фото
+        } for p in ps])
     if 'photo' not in request.files:
         return jsonify({'error': 'Нет файла'}), 400
-    
     file = request.files['photo']
-    if file.filename == '':
-        return jsonify({'error': 'Файл не выбран'}), 400
-    
     caption = request.form.get('caption', '')
-    
-    # Создаем папку если нет
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    
-    # Сохраняем файл локально
-    filename = secure_filename(f"{datetime.now().timestamp()}_{file.filename}")
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(filepath)
-    
-    photo = Photo(
-        couple_id=current_user.couple_id,
-        user_id=current_user.id,
-        filename=filename,
-        url=f'/static/uploads/{filename}',
-        caption=caption
-    )
-    db.session.add(photo)
-    db.session.commit()
-    
-    return jsonify({'success': True, 'url': photo.url})
+    if file.filename:
+        result = cloudinary.uploader.upload(file, folder='2gether')
+        photo = Photo(
+            couple_id=current_user.couple_id,
+            user_id=current_user.id,
+            filename=result['public_id'],
+            url=result['secure_url'],
+            caption=caption
+        )
+        db.session.add(photo)
+        db.session.commit()
+        return jsonify({'success': True})
+    return jsonify({'error': 'Ошибка загрузки'}), 400
 
-@app.route('/static/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+@app.route('/api/photos/<int:photo_id>', methods=['DELETE'])
+@login_required
+def delete_photo(photo_id):
+    photo = Photo.query.get_or_404(photo_id)
+    if photo.couple_id != current_user.couple_id:
+        return jsonify({'error': 'Нет доступа'}), 403
+    try:
+        if photo.filename:
+            cloudinary.uploader.destroy(photo.filename)
+    except:
+        pass
+    db.session.delete(photo)
+    db.session.commit()
+    return jsonify({'success': True})
 
 @app.route('/api/ai/analyze', methods=['POST'])
 @login_required
@@ -621,11 +586,54 @@ def ai_analyze():
     if not tips:
         tips.append("Расходы выглядят сбалансированно! Продолжайте в том же духе 💕")
     return jsonify({'tips': tips, 'breakdown': summary})
-
-# ========== ЗАПУСК ==========
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        print("✓ База данных готова")
-        print("✓ Все маршруты загружены")
+        print("DB ready")
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+
+@app.route('/wallet')
+@login_required
+def wallet_page():
+    return render_template('wallet.html', active='wallet')
+
+@app.route('/schedule')
+@login_required
+def schedule_page():
+    return render_template('schedule.html', active='schedule')
+
+@app.route('/tasks')
+@login_required
+def tasks_page():
+    return render_template('tasks.html', active='tasks')
+
+@app.route('/mood')
+@login_required
+def mood_page():
+    return render_template('mood.html', active='mood')
+
+@app.route('/wishlist')
+@login_required
+def wishlist_page():
+    partner_id = None
+    if current_user.couple_id:
+        p = User.query.filter(User.couple_id == current_user.couple_id, User.id != current_user.id).first()
+        if p:
+            partner_id = p.id
+    return render_template('wishlist.html', active='wishlist', partner_id=partner_id)
+
+@app.route('/photos')
+@login_required
+def photos_page():
+    return render_template('photos.html', active='photos')
+
+@app.route('/api/me')
+@login_required
+def api_me():
+    return jsonify({
+        'id': current_user.id,
+        'display_name': current_user.display_name,
+        'username': current_user.username,
+        'couple_id': current_user.couple_id,
+    })
