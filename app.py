@@ -253,10 +253,11 @@ def transactions():
         return jsonify({'error': 'Нет пары'}), 400
     if request.method == 'GET':
         txs = Transaction.query.filter_by(couple_id=current_user.couple_id).order_by(Transaction.date.desc()).all()
+        users = {u.id: u.display_name for u in User.query.filter_by(couple_id=current_user.couple_id).all()}
         return jsonify([{
             'id': t.id, 'amount': t.amount, 'category': t.category,
             'description': t.description, 'date': str(t.date),
-            'type': t.type, 'user_id': t.user_id
+            'type': t.type, 'user_id': t.user_id, 'user_name': users.get(t.user_id, '?')
         } for t in txs])
     data = request.get_json()
     tx = Transaction(
@@ -352,52 +353,36 @@ def free_time():
     my_busy = Schedule.query.filter_by(user_id=current_user.id).all()
     partner_busy = Schedule.query.filter_by(user_id=partner.id).all()
     days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
-
-    def to_minutes(t):
-        h, m = map(int, t.split(':'))
-        return h * 60 + m
-
-    def to_hhmm(m):
-        return f"{m // 60:02d}:{m % 60:02d}"
-
-    def get_busy_intervals(slots, day):
-        intervals = []
-        for s in slots:
-            if s.day_of_week == day:
-                intervals.append((to_minutes(s.start_time), to_minutes(s.end_time)))
-        intervals.sort()
-        merged = []
-        for s, e in intervals:
-            if merged and s <= merged[-1][1]:
-                merged[-1] = (merged[-1][0], max(merged[-1][1], e))
-            else:
-                merged.append([s, e])
-        return merged
-
-    def find_free(busy, day_start=10*60, day_end=23*60):
-        free_slots = []
-        cur = day_start
-        for s, e in busy:
-            if cur < s and s - cur >= 30:
-                free_slots.append((cur, min(s, day_end)))
-            cur = max(cur, e)
-        if cur < day_end and day_end - cur >= 30:
-            free_slots.append((cur, day_end))
-        return free_slots
-
     free = []
+    
     for day in range(7):
-        all_busy = sorted(get_busy_intervals(my_busy, day) + get_busy_intervals(partner_busy, day))
-        merged = []
-        for s, e in all_busy:
-            if merged and s <= merged[-1][1]:
-                merged[-1] = (merged[-1][0], max(merged[-1][1], e))
-            else:
-                merged.append([s, e])
-        free_slots = find_free(merged)
-        if free_slots:
-            free.append({'day': days[day], 'slots': [f"{to_hhmm(s)} – {to_hhmm(e)}" for s, e in free_slots]})
-
+        my_day = [s for s in my_busy if s.day_of_week == day]
+        p_day = [s for s in partner_busy if s.day_of_week == day]
+        
+        if not my_day and not p_day:
+            free.append({'day': days[day], 'slots': ['10:00-22:00 — весь день свободен!']})
+        elif my_day or p_day:
+            busy_times = sorted(my_day + p_day, key=lambda s: s.start_time)
+            slots = []
+            
+            if busy_times:
+                first_start = busy_times[0].start_time
+                if first_start > '10:00':
+                    slots.append(f"10:00-{first_start}")
+                
+                for i in range(len(busy_times) - 1):
+                    end_time = busy_times[i].end_time
+                    next_start = busy_times[i + 1].start_time
+                    if end_time < next_start:
+                        slots.append(f"{end_time}-{next_start}")
+                
+                last_end = busy_times[-1].end_time
+                if last_end < '22:00':
+                    slots.append(f"{last_end}-22:00")
+            
+            if slots:
+                free.append({'day': days[day], 'slots': slots})
+    
     return jsonify(free)
 
 
@@ -542,17 +527,20 @@ def photos():
     file = request.files['photo']
     caption = request.form.get('caption', '')
     if file.filename:
-        result = cloudinary.uploader.upload(file, folder='2gether')
-        photo = Photo(
-            couple_id=current_user.couple_id,
-            user_id=current_user.id,
-            filename=result['public_id'],
-            url=result['secure_url'],
-            caption=caption
-        )
-        db.session.add(photo)
-        db.session.commit()
-        return jsonify({'success': True})
+        try:
+            result = cloudinary.uploader.upload(file, folder='2gether')
+            photo = Photo(
+                couple_id=current_user.couple_id,
+                user_id=current_user.id,
+                filename=result['public_id'],
+                url=result['secure_url'],
+                caption=caption
+            )
+            db.session.add(photo)
+            db.session.commit()
+            return jsonify({'success': True})
+        except Exception as e:
+            return jsonify({'error': f'Ошибка загрузки: {str(e)}'}), 400
     return jsonify({'error': 'Ошибка загрузки'}), 400
 
 @app.route('/api/photos/<int:photo_id>', methods=['DELETE'])
