@@ -87,19 +87,19 @@ async function deletePhoto(id) {
 
 async function loadPhotos() {
   const photos = await TOGETHER.api('/api/photos');
-  document.getElementById('photoCount').textContent = photos.length;
   const grid = document.getElementById('photoGrid');
-  if (!photos.length) {
-    grid.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:40px;grid-column:1/-1">Нет фото — добавьте первое! 💕</p>';
-    return;
-  }
+  if(!photos.length) { grid.innerHTML='<p style="text-align:center;color:var(--text-light)">Нет фото</p>'; return; }
   grid.innerHTML = photos.map(p => `
-    <div class="photo-item">
-      <img src="${p.url}" alt="${p.caption || ''}" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;">
-      <button class="photo-delete" onclick="deletePhoto(${p.id})" title="Удалить">✕</button>
-      ${p.caption ? `<div class="photo-caption">${p.caption}</div>` : ''}
-      <div class="photo-meta">${p.author} • ${p.date}</div>
-    </div>`).join('');
+    <div class="photo-card" onmouseover="this.querySelector('.photo-delete').style.display='block'" onmouseout="this.querySelector('.photo-delete').style.display='none'">
+      <img src="/static/uploads/${p.filename}" alt="${p.caption}" onerror="this.src='/static/placeholder.png'">
+      <div class="photo-info">
+        <div class="photo-caption">${p.caption || '—'}</div>
+        <div class="photo-meta">${p.author} • ${p.date}</div>
+      </div>
+      <button class="photo-delete" onclick="deletePhoto(${p.id})" style="display:none">✕</button>
+    </div>
+  `).join('');
+  document.getElementById('photoCount').textContent = photos.length;
 }
 
 window.addEventListener('load', () => { loadPhotos(); });
