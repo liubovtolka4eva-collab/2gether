@@ -497,6 +497,8 @@ def wishlist():
     return jsonify({'success': True})
 
 
+photo_storage = {}
+
 @app.route('/api/photos', methods=['GET', 'POST'])
 @login_required
 def photos():
@@ -519,7 +521,9 @@ def photos():
     if file.filename:
         fname = secure_filename(f"{current_user.id}_{datetime.now().timestamp()}_{file.filename}")
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], fname))
+        path = os.path.join(app.config['UPLOAD_FOLDER'], fname)
+        file.save(path)
+        photo_storage[fname] = path
         photo = Photo(couple_id=current_user.couple_id, user_id=current_user.id, filename=fname, caption=caption)
         db.session.add(photo)
         db.session.commit()
