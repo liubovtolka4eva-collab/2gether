@@ -136,6 +136,7 @@ class Photo(db.Model):
     couple_id = db.Column(db.Integer, db.ForeignKey('couple.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     filename = db.Column(db.String(255))
+    image_data = db.Column(db.Text, nullable=True)
     caption = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
