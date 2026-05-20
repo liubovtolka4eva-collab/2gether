@@ -91,7 +91,7 @@ async function loadPhotos() {
   if(!photos.length) { grid.innerHTML='<p style="text-align:center;color:var(--text-light)">Нет фото</p>'; return; }
   grid.innerHTML = photos.map(p => `
     <div class="photo-card" onmouseover="this.querySelector('.photo-delete').style.display='block'" onmouseout="this.querySelector('.photo-delete').style.display='none'">
-      <img src="/static/uploads/${p.filename}" alt="${p.caption}" onerror="this.src='/static/placeholder.png'">
+      <img src="${p.url}" alt="${p.caption}" onerror="this.src='/static/placeholder.png'">
       <div class="photo-info">
         <div class="photo-caption">${p.caption || '—'}</div>
         <div class="photo-meta">${p.author} • ${p.date}</div>
