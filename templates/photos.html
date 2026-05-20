@@ -124,7 +124,14 @@ async function loadPhotos() {
     document.getElementById('photoCount').textContent = '0';
     return;
   }
-  grid.innerHTML = photos.map(p => `
+
+  const valid = photos.filter(p => p.url && p.url.startsWith('data:'));
+  if (!valid.length) {
+    grid.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:40px">Нет фото — добавьте первое! 💕</p>';
+    document.getElementById('photoCount').textContent = '0';
+    return;
+  }
+  grid.innerHTML = valid.map(p => `
     <div class="photo-card"
       onmouseover="this.querySelector('.photo-delete').style.display='flex'"
       onmouseout="this.querySelector('.photo-delete').style.display='none'">
@@ -136,7 +143,7 @@ async function loadPhotos() {
       </div>
     </div>
   `).join('');
-  document.getElementById('photoCount').textContent = photos.length;
+  document.getElementById('photoCount').textContent = valid.length;
 }
  
 window.addEventListener('load', () => { loadPhotos(); });
