@@ -25,55 +25,59 @@
 </div>
 <div class="card">
   <div class="card-title">🖼️ Все фото</div>
-  <div class="photo-grid" id="photoGrid"><p style="color:var(--text-light)">Загрузка...</p></div>
+  <div id="photoGrid"><p style="color:var(--text-light)">Загрузка...</p></div>
 </div>
-
+ 
 <style>
-.photo-grid {
+#photoGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 12px;
 }
-.photo-item {
+.photo-card {
   position: relative;
   border-radius: 12px;
   overflow: hidden;
   background: #f9f0f5;
 }
-.photo-item img {
+.photo-card img {
   width: 100%;
   aspect-ratio: 1/1;
   object-fit: cover;
   display: block;
 }
-.photo-delete {
+.photo-card .photo-delete {
   position: absolute;
-  top: 8px; right: 8px;
-  background: rgba(0,0,0,0.55);
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.6);
   color: white;
   border: none;
   border-radius: 50%;
-  width: 30px; height: 30px;
-  font-size: 16px;
+  width: 30px;
+  height: 30px;
+  font-size: 14px;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
 }
-.photo-item:hover .photo-delete { opacity: 1; }
+.photo-info {
+  padding: 6px 8px 8px;
+  background: rgba(255,255,255,0.95);
+}
 .photo-caption {
   font-size: 12px;
-  padding: 4px 8px;
-  background: rgba(255,255,255,0.92);
+  color: #444;
+  margin-bottom: 2px;
 }
 .photo-meta {
   font-size: 11px;
   color: #999;
-  padding: 2px 8px 6px;
-  background: rgba(255,255,255,0.92);
 }
 </style>
-
+ 
 <script>
 function previewPhoto(e) {
   const file = e.target.files[0];
@@ -85,7 +89,7 @@ function previewPhoto(e) {
   };
   reader.readAsDataURL(file);
 }
-
+ 
 async function uploadPhoto() {
   const file = document.getElementById('photoFile').files[0];
   if (!file) { TOGETHER.toast('Выберите фото', 'error'); return; }
@@ -101,7 +105,7 @@ async function uploadPhoto() {
     loadPhotos();
   }
 }
-
+ 
 async function deletePhoto(id) {
   if (!confirm('Удалить это фото?')) return;
   const res = await fetch(`/api/photos/${id}`, { method: 'DELETE' });
@@ -111,24 +115,30 @@ async function deletePhoto(id) {
     loadPhotos();
   }
 }
-
+ 
 async function loadPhotos() {
   const photos = await TOGETHER.api('/api/photos');
   const grid = document.getElementById('photoGrid');
-  if(!photos.length) { grid.innerHTML='<p style="text-align:center;color:var(--text-light)">Нет фото</p>'; return; }
+  if (!photos || !photos.length) {
+    grid.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:40px">Нет фото — добавьте первое! 💕</p>';
+    document.getElementById('photoCount').textContent = '0';
+    return;
+  }
   grid.innerHTML = photos.map(p => `
-    <div class="photo-card" onmouseover="this.querySelector('.photo-delete').style.display='block'" onmouseout="this.querySelector('.photo-delete').style.display='none'">
-      <img src="/static/uploads/${p.filename}" alt="${p.caption || ''}" onerror="this.src='/static/placeholder.png'">
+    <div class="photo-card"
+      onmouseover="this.querySelector('.photo-delete').style.display='flex'"
+      onmouseout="this.querySelector('.photo-delete').style.display='none'">
+      <img src="/static/uploads/${p.filename}" alt="${p.caption || ''}" onerror="this.style.background='#f0d0da';this.style.minHeight='120px'">
+      <button class="photo-delete" onclick="deletePhoto(${p.id})">✕</button>
       <div class="photo-info">
-        <div class="photo-caption">${p.caption || '—'}</div>
+        ${p.caption ? `<div class="photo-caption">${p.caption}</div>` : ''}
         <div class="photo-meta">${p.author} • ${p.date}</div>
       </div>
-      <button class="photo-delete" onclick="deletePhoto(${p.id})" style="display:none">✕</button>
     </div>
   `).join('');
   document.getElementById('photoCount').textContent = photos.length;
 }
-
+ 
 window.addEventListener('load', () => { loadPhotos(); });
 </script>
 {% endblock %}
