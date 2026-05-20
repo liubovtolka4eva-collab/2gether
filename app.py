@@ -520,12 +520,16 @@ def photos():
     file = request.files['photo']
     caption = request.form.get('caption', '')
     if file.filename:
-        fname = secure_filename(f"{current_user.id}_{datetime.now().timestamp()}_{file.filename}")
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-        path = os.path.join(app.config['UPLOAD_FOLDER'], fname)
-        file.save(path)
-        photo_storage[fname] = path
-        photo = Photo(couple_id=current_user.couple_id, user_id=current_user.id, filename=fname, caption=caption)
+        image_data = base64.b64encode(file.read()).decode('utf-8')
+        mime = file.content_type or 'image/jpeg'
+        data_url = f"data:{mime};base64,{image_data}"
+        photo = Photo(
+            couple_id=current_user.couple_id,
+            user_id=current_user.id,
+            filename=file.filename,
+            image_data=data_url,
+            caption=caption
+        )
         db.session.add(photo)
         db.session.commit()
         return jsonify({'success': True})
