@@ -29,7 +29,23 @@
 </div>
 
 <style>
-.photo-item { position: relative; }
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+.photo-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f9f0f5;
+}
+.photo-item img {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  display: block;
+}
 .photo-delete {
   position: absolute;
   top: 8px; right: 8px;
@@ -45,6 +61,17 @@
   transition: opacity 0.2s;
 }
 .photo-item:hover .photo-delete { opacity: 1; }
+.photo-caption {
+  font-size: 12px;
+  padding: 4px 8px;
+  background: rgba(255,255,255,0.92);
+}
+.photo-meta {
+  font-size: 11px;
+  color: #999;
+  padding: 2px 8px 6px;
+  background: rgba(255,255,255,0.92);
+}
 </style>
 
 <script>
