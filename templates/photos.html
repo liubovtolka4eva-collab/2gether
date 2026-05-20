@@ -27,7 +27,7 @@
   <div class="card-title">🖼️ Все фото</div>
   <div id="photoGrid"><p style="color:var(--text-light)">Загрузка...</p></div>
 </div>
- 
+
 <style>
 #photoGrid {
   display: grid;
@@ -77,7 +77,7 @@
   color: #999;
 }
 </style>
- 
+
 <script>
 function previewPhoto(e) {
   const file = e.target.files[0];
@@ -89,7 +89,7 @@ function previewPhoto(e) {
   };
   reader.readAsDataURL(file);
 }
- 
+
 async function uploadPhoto() {
   const file = document.getElementById('photoFile').files[0];
   if (!file) { TOGETHER.toast('Выберите фото', 'error'); return; }
@@ -105,7 +105,7 @@ async function uploadPhoto() {
     loadPhotos();
   }
 }
- 
+
 async function deletePhoto(id) {
   if (!confirm('Удалить это фото?')) return;
   const res = await fetch(`/api/photos/${id}`, { method: 'DELETE' });
@@ -115,7 +115,7 @@ async function deletePhoto(id) {
     loadPhotos();
   }
 }
- 
+
 async function loadPhotos() {
   const photos = await TOGETHER.api('/api/photos');
   const grid = document.getElementById('photoGrid');
@@ -124,7 +124,7 @@ async function loadPhotos() {
     document.getElementById('photoCount').textContent = '0';
     return;
   }
-
+  // Показываем только фото с реальными данными
   const valid = photos.filter(p => p.url && p.url.startsWith('data:'));
   if (!valid.length) {
     grid.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:40px">Нет фото — добавьте первое! 💕</p>';
@@ -145,7 +145,7 @@ async function loadPhotos() {
   `).join('');
   document.getElementById('photoCount').textContent = valid.length;
 }
- 
+
 window.addEventListener('load', () => { loadPhotos(); });
 </script>
 {% endblock %}
