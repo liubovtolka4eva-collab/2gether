@@ -511,6 +511,7 @@ def photos():
         return jsonify([{
             'id': p.id,
             'filename': p.filename,
+            'url': p.image_data or f'/static/uploads/{p.filename}',
             'caption': p.caption,
             'date': p.created_at.strftime('%d.%m.%Y'),
             'author': users.get(p.user_id, '?')
