@@ -128,7 +128,7 @@ async function loadPhotos() {
     <div class="photo-card"
       onmouseover="this.querySelector('.photo-delete').style.display='flex'"
       onmouseout="this.querySelector('.photo-delete').style.display='none'">
-      <img src="${p.data}" alt="${p.caption || ''}">
+      <img src="${p.url}" alt="${p.caption || ''}">
       <button class="photo-delete" onclick="deletePhoto(${p.id})">✕</button>
       <div class="photo-info">
         ${p.caption ? `<div class="photo-caption">${p.caption}</div>` : ''}
